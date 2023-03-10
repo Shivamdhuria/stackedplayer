@@ -4,7 +4,11 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.VectorConverter
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,16 +18,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,12 +35,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.elixer.list.ui.theme.ListTheme
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
 import com.github.theapache64.twyper.rememberTwyperController
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.math.abs
 
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,61 +63,17 @@ class MainActivity : ComponentActivity() {
         // A surface container using the 'background' color from the theme
 
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-          var numbers = remember {
-            mutableStateListOf(Pair(1, false), Pair(2, false), Pair(3, false), Pair(4, false))
-          }
-//          val myList = remember {
-//            mutableStateListOf<Int>().apply {
-//              add(1)
-//              add(2)
-//              add(3)
-//            }
-//          }
-
-
-          val myList = remember {
-            mutableStateListOf<Pair<Int, Boolean>>().apply {
-              add(Pair(1, false))
-              add(Pair(2, false))
-              add(Pair(3, false))
-
-            }
-          }
 
           var movieList = remember {
             mutableStateListOf(
-              Movie("Sasaasa"),
-              Movie("Sasaasa"),
-              Movie("Sasaasa"),
-              Movie("Sasaasa"),
+              Movie("1"), Movie("2"), Movie("3"),
+              Movie("4"),
             )
 
           }
-
-//          var takeIndex by remember { mutableStateOf(2) }
-
-          //          LaunchedEffect(takeIndex) {
-//            myList.swapList(getDailyItemList()) // Returns a List<DailyItem> with latest values and uses mutable list internally
-//            numbers.add(5)
-//            myList.
-//          }
-          fun addElem() {
-            myList.add(Pair(9, false))
-
-          }
-
-//          List(myList) {
-//            addElem()
-//          }
-//          TwyperPreview()
-
           Column {
-            MoviesScreenWithKey(movies = movieList)
-            Button(onClick =
-            {
-              movieList.add(Movie(id = "${Math.random()}"))
-            }) {
-              Text(text = "Add")
+            MoviesScreenStackWithKey(movies = movieList.takeLast(2)) {
+              movieList.remove(it)
             }
           }
         }
@@ -112,7 +85,7 @@ class MainActivity : ComponentActivity() {
   private fun List(myList: SnapshotStateList<Pair<Int, Boolean>>, onClick: () -> Unit) {
     Column() {
       val text = remember {
-        mutableStateOf("ajdkajds")
+        mutableStateOf("100")
       }
 
       Greeting("Android")
@@ -174,38 +147,170 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun MoviesScreenWithKey(movies: List<Movie>) {
-  Box {
-    LogCompositions(tag = "onCreate", msg = "MoviesScreenWithKey Box")
+fun MoviesScreenStackWithKey(movies: List<Movie>, onSwiped: (Movie) -> Unit) {
+  Column {
+    LogCompositions(tag = "onCreate", msg = "MoviesScreenWithKey COlumn")
+//    val state = rememberSwipeableCardState()
+//    Log.d("MoviesScreenWithKey", "state ${state}")
+//    val
+    val screenWidth =
+      with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
+    val screenHeight =
+      with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
+    val scope = rememberCoroutineScope()
+//    var activeCardState = rememberSwipeableCardState()
+//    val queuedCardState = rememberSwipeableCardState()
+    val activeOffset by remember {
+      mutableStateOf(
+        Animatable(
+          Offset.Zero, Offset
+            .VectorConverter
+        )
+      )
+    }
 
-    for (movie in movies) {
-      key(movie.id) { // Unique ID for this movie
-        MovieOverview(movie)
+//    val mutaList = remember { mutableStateListOf<Movie>() }
+
+    var currentMovie by remember { mutableStateOf<Movie?>(movies.last()) }
+
+//    fun moveLastEntryToCurrent(movies: List<Movie>) {
+//      currentMovie = movies.last()
+//      scope.launch {
+//        delay(200)
+//        activeOffset.snapTo(Offset.Zero)
+//      }
+//    }
+
+    LaunchedEffect(movies) {
+      currentMovie = movies.last()
+    }
+
+    fun onSwipedNew(direction: Direction) {
+      currentMovie?.let {
+        onSwiped(it)
+      }
+    }
+
+    suspend fun swipeNew(direction: Direction, animationSpec: AnimationSpec<Offset> = tween(400)) {
+      val endX = screenWidth * 1.5f
+      val endY = screenHeight
+      when (direction) {
+        Direction.Left -> activeOffset.animateTo(Offset(x = -endX, 0f), animationSpec)
+        Direction.Right -> activeOffset.animateTo(Offset(x = endX, 0f), animationSpec)
+        Direction.Up -> activeOffset.animateTo(Offset(x = 0f, y = -endY), animationSpec)
+        Direction.Down -> activeOffset.animateTo(Offset(x = 0f, y = endY), animationSpec)
+      }
+      onSwipedNew(direction)
+    }
+
+    LaunchedEffect(movies) {
+      currentMovie = movies.last()
+      activeOffset.snapTo(Offset(0f,0f))
+    }
+
+    Box() {
+      movies.forEach {
+        ScopedView {
+          key(it.id) {
+            MovieOverview(modifier = Modifier
+              .pointerInput(Unit) {
+                coroutineScope {
+                  detectDragGestures(
+                    onDragCancel = {
+                      launch {
+//                    state.reset()
+//                    onSwipeCancel()
+                      }
+                    },
+                    onDrag = { change, dragAmount ->
+                      launch {
+                        val original = activeOffset.targetValue
+                        val summed = original + dragAmount
+                        val newValue = Offset(
+                          x = summed.x.coerceIn(-screenWidth, screenWidth),
+                          y = summed.y.coerceIn(-screenHeight, screenHeight)
+                        )
+                        if (change.positionChange() != Offset.Zero) change.consume()
+                        activeOffset.animateTo(Offset(newValue.x, newValue.y))
+                      }
+                    },
+                    onDragEnd = {
+                      launch {
+                        val coercedOffset = activeOffset.targetValue
+                          .coerceIn(
+                            listOf(Direction.Up, Direction.Down),
+                            maxHeight = screenHeight,
+                            maxWidth = screenWidth
+                          )
+
+                        if (hasNotTravelledEnoughNew(
+                            screenWidth,
+                            screenHeight,
+                            coercedOffset
+                          )
+                        ) {
+                          activeOffset.animateTo(Offset.Zero, tween(400))
+                        } else {
+                          val horizontalTravel = abs(activeOffset.targetValue.x)
+                          val verticalTravel = abs(activeOffset.targetValue.y)
+
+                          if (horizontalTravel > verticalTravel) {
+                            if (activeOffset.targetValue.x > 0) {
+                              swipeNew(Direction.Right)
+//                          onSwiped(Direction.Right)
+                            } else {
+                              swipeNew(Direction.Left)
+//                          onSwiped(Direction.Left)
+                            }
+                          } else {
+                            if (activeOffset.targetValue.y < 0) {
+                              swipeNew(Direction.Up)
+//                          onSwiped(Direction.Up)
+                            } else {
+                              swipeNew(Direction.Down)
+//                          onSwiped(Direction.Down)
+                            }
+                          }
+                        }
+                      }
+                    }
+                  )
+                }
+              }
+              .graphicsLayer {
+                if (it == currentMovie) {
+                  translationX = activeOffset.value.x
+                  translationY = activeOffset.value.y
+                  rotationZ = (activeOffset.value.x / 60).coerceIn(-40f, 40f)
+                } else {
+                  translationX = 0f
+                  translationY = 0f
+                  rotationZ = 0f
+                }
+              }, movie = it
+            )
+          }
+        }
       }
     }
   }
 }
 
+
 @Composable
-fun MovieOverview(movie: Movie) {
-  Column() {
-
-    Card(
-      modifier = Modifier.fillMaxWidth().padding(horizontal = 30.dp).height(50.dp),
-      colors = CardDefaults.cardColors(containerColor = getRandomColor())
-    ) {
-      LogCompositions(tag = "onCreate", msg = "MovieOverview Column")
-
-      // Side effect explained later in the docs. If MovieOverview
-      // recomposes, while fetching the image is in progress,
-      // it is cancelled and restarted.
-      Text(movie.id, color = Color.Black)
-    }
-
-
-    /* ... */
+fun MovieOverview(modifier: Modifier, movie: Movie) {
+  LogCompositions(tag = "Oncreate", msg = "Movie Overview -> ${movie.id} comp")
+  Card(
+    modifier = modifier
+      .fillMaxWidth()
+      .padding(horizontal = 30.dp)
+      .height(250.dp),
+    colors = CardDefaults.cardColors(containerColor = getRandomColor())
+  ) {
+    Text(movie.id, color = Color.Black)
   }
 }
+
 
 data class Movie(
   val id: String
@@ -222,6 +327,11 @@ fun GreetingPreview() {
   ListTheme {
     Greeting("Android")
   }
+}
+
+fun <T> SnapshotStateList<T>.swapList(newList: List<T>) {
+  clear()
+  addAll(newList)
 }
 
 class Ref(var value: Int)
