@@ -83,7 +83,7 @@ class MainActivity : ComponentActivity() {
           LogCompositions(tag = "onCreate", msg = "Parent")
 
           Column {
-            MoviesScreenStackWithKey(movieList.toList()) {
+            MoviesScreenStackWithKey(movieList.toList().takeLast(2)) {
               movieList.remove(it)
             }
           }
