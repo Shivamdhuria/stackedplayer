@@ -6,8 +6,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.AnimationVector2D
 import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,8 +19,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -47,6 +50,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -158,325 +163,176 @@ fun MoviesScreenStackWithKey(movies: List<Movie>, onSwiped: (Movie) -> Unit) {
   Column {
     LogCompositions(tag = "onCreate", msg = "MoviesScreenWithKey Column")
 
-    val screenWidth = 300f
-    val screenHeight = 600f
-    val scope = rememberCoroutineScope()
-
-
-    val activeOffset by remember(movies.last()) {
-      mutableStateOf(Animatable(Offset.Zero, Offset.VectorConverter))
-    }
-
     val currentMovie by remember(movies.last()) {
       mutableStateOf(movies.last())
     }
+    val onNameEnteredClick: (value: Movie) -> Unit = remember { return@remember onSwiped }
 
-
-    fun isMoveable(movie: Movie): Boolean {
-      return movies.last() == movie
-    }
-
-//    val currentMovie = movies.last()
-
-    Log.d("oncreate CC", currentMovie.id.toString())
-
-    // Saves Column from getting recomposed when movies is changed
-    fun onDragCancel() {
-      scope.launch {
-//                    state.reset()
-//                    onSwipeCancel()
-      }
-    }
-
-    fun onSwipedNew(direction: Direction) {
-      currentMovie?.let {
-        val movie = movies.lastOrNull()
-        movie?.let { onSwiped(it) }
-//        if (direction == Direction.Right) {
-//          onVote(it, true)
-//        } else {
-//          onVote(it, false)
-//        }
-      }
-    }
-
-    suspend fun swipeNew(direction: Direction, animationSpec: AnimationSpec<Offset> = tween(400)) {
-      val endX = screenWidth * 1.5f
-      val endY = screenHeight
-      when (direction) {
-        Direction.Left -> activeOffset.animateTo(Offset(x = -endX, 0f), animationSpec)
-        Direction.Right -> activeOffset.animateTo(Offset(x = endX, 0f), animationSpec)
-        Direction.Up -> activeOffset.animateTo(Offset(x = 0f, y = -endY), animationSpec)
-        Direction.Down -> activeOffset.animateTo(Offset(x = 0f, y = endY), animationSpec)
-      }
-      onSwipedNew(direction)
-    }
-
-    fun onDrag(change: PointerInputChange, dragAmount: Offset) {
-      scope.launch {
-
-        val original = activeOffset.targetValue
-        val summed = original + dragAmount
-        val newValue = Offset(
-          x = summed.x.coerceIn(-screenWidth, screenWidth),
-          y = summed.y.coerceIn(-screenHeight, screenHeight)
-        )
-        if (change.positionChange() != Offset.Zero) change.consume()
-        activeOffset.animateTo(Offset(newValue.x, newValue.y))
-      }
-//      state . reset ()
-//      onSwipeCancel()
-
-    }
-    LaunchedEffect(movies) {
-//      currentMovie = movies.last()
-      activeOffset.snapTo(Offset(0f, 0f))
-    }
     ScopedView {
       Box() {
         for (it in movies) {
           key(it.id) {
 //            ScopedView {
-            MovieOverview(modifier = Modifier
-              .then(
-                if (it == currentMovie)
-                  Modifier
-                    .pointerInput(Unit) {
-                      coroutineScope {
-                        detectDragGestures(
-                          onDragCancel = {
-                            launch {
-                              activeOffset.animateTo(Offset(0f, 0f))
-
-//                    state.reset()
-//                    onSwipeCancel()
-                            }
-                          },
-                          onDrag = { change, dragAmount ->
-                            launch {
-                              val original = activeOffset.targetValue
-                              val summed = original + dragAmount
-                              val newValue = Offset(
-                                x = summed.x.coerceIn(-screenWidth, screenWidth),
-                                y = summed.y.coerceIn(-screenHeight, screenHeight)
-                              )
-                              if (change.positionChange() != Offset.Zero) change.consume()
-                              activeOffset.animateTo(Offset(newValue.x, newValue.y))
-                            }
-                          },
-                          onDragEnd = {
-                            launch {
-                              val coercedOffset = activeOffset.targetValue
-                                .coerceIn(
-                                  listOf(Direction.Up, Direction.Down),
-                                  maxHeight = screenHeight,
-                                  maxWidth = screenWidth
-                                )
-
-                              if (hasNotTravelledEnoughNew(
-                                  screenWidth,
-                                  screenHeight,
-                                  coercedOffset
-                                )
-                              ) {
-                                activeOffset.animateTo(Offset.Zero, tween(400))
-                              } else {
-                                val horizontalTravel = abs(activeOffset.targetValue.x)
-                                val verticalTravel = abs(activeOffset.targetValue.y)
-
-                                if (horizontalTravel > verticalTravel) {
-                                  if (activeOffset.targetValue.x > 0) {
-                                    swipeNew(Direction.Right)
-//                          onSwiped(Direction.Right)
-                                  } else {
-                                    swipeNew(Direction.Left)
-//                          onSwiped(Direction.Left)
-                                  }
-                                } else {
-                                  if (activeOffset.targetValue.y < 0) {
-//                              swipeNew(Direction.Up)
-//                          onSwiped(Direction.Up)
-                                  } else {
-//                              swipeNew(Direction.Down)
-//                          onSwiped(Direction.Down)
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        )
-                      }
-                    }
-                    .graphicsLayer {
-                      translationX = activeOffset.value.x
-                      translationY = activeOffset.value.y
-                      rotationZ = (activeOffset.value.x / 60).coerceIn(-40f, 40f)
-                    }
-                else Modifier
-              ), it
-            )
+            MovieOverview(
+              it,
+            ) {
+              onNameEnteredClick(it)
+//              ::onSwiped(it)
+            }
           }
-
         }
-//          }
       }
-    }
-
-  }
-
-//    LazyColumn {
-//      items(movies, key = { movie -> movie.id }) { movie ->
-//        MovieOverview(movie)
+//      LazyColumn() {
+//        items(
+//          items = movies,
+//          key = { message ->
+//            // Return a stable + unique key for the item
+//            message.id
+//          }
+//        ) { it ->
+//          MovieOverviewNew(it)
+//        }
 //      }
-//    }
 
+//      Box() {
+//        movies.forEach {
+//          key(it.id) {
+//            MovieOverviewNew(it)
+//          }
+//        }
+//      }
+    }
+  }
   Button(onClick = {
     val movie = movies.lastOrNull()
     movie?.let { onSwiped(it) }
   }) {
     Text(text = "onclick")
   }
-//    val activeOffset by remember { mutableStateOf(Animatable(Offset.Zero, Offset.VectorConverter)) }
-
-//    val mutaList = remember { mutableStateListOf<Movie>() }
-
-//    var currentMovie by remember { mutableStateOf<Movie?>(movies.last()) }
-
-//    fun moveLastEntryToCurrent(movies: List<Movie>) {
-//      currentMovie = movies.last()
-//      scope.launch {
-//        delay(200)
-//        activeOffset.snapTo(Offset.Zero)
-//      }
-//    }
-
-//    LaunchedEffect(movies) {
-//      currentMovie = movies.last()
-//    }
-
-//    fun onSwipedNew(direction: Direction) {
-//      currentMovie?.let {
-//        onSwiped(it)
-//      }
-//    }
-
-//    suspend fun swipeNew(direction: Direction, animationSpec: AnimationSpec<Offset> = tween(400)) {
-//      val endX = screenWidth * 1.5f
-//      val endY = screenHeight
-//      when (direction) {
-//        Direction.Left -> activeOffset.animateTo(Offset(x = -endX, 0f), animationSpec)
-//        Direction.Right -> activeOffset.animateTo(Offset(x = endX, 0f), animationSpec)
-//        Direction.Up -> activeOffset.animateTo(Offset(x = 0f, y = -endY), animationSpec)
-//        Direction.Down -> activeOffset.animateTo(Offset(x = 0f, y = endY), animationSpec)
-//      }
-////      onSwipedNew(direction)
-//    }
-
-//    LaunchedEffect(movies) {
-////      currentMovie = movies.first()
-//      activeOffset.snapTo(Offset(0f, 0f))
-//    }
-
-//    Box() {
-//      movies.reversed().forEach {
-//        ScopedView {
-//          key(it.id) {
-//            MovieOverview(modifier = Modifier
-//              .pointerInput(Unit) {
-//                coroutineScope {
-//                  detectDragGestures(
-//                    onDragCancel = {
-//                      launch {
-////                    state.reset()
-////                    onSwipeCancel()
-//                      }
-//                    },
-//                    onDrag = { change, dragAmount ->
-//                      launch {
-//                        val original = activeOffset.targetValue
-//                        val summed = original + dragAmount
-//                        val newValue = Offset(
-//                          x = summed.x.coerceIn(-screenWidth, screenWidth),
-//                          y = summed.y.coerceIn(-screenHeight, screenHeight)
-//                        )
-//                        if (change.positionChange() != Offset.Zero) change.consume()
-//                        activeOffset.animateTo(Offset(newValue.x, newValue.y))
-//                      }
-//                    },
-//                    onDragEnd = {
-//                      launch {
-//                        val coercedOffset = activeOffset.targetValue
-//                          .coerceIn(
-//                            listOf(Direction.Up, Direction.Down),
-//                            maxHeight = screenHeight,
-//                            maxWidth = screenWidth
-//                          )
-//
-//                        if (hasNotTravelledEnoughNew(
-//                            screenWidth,
-//                            screenHeight,
-//                            coercedOffset
-//                          )
-//                        ) {
-//                          activeOffset.animateTo(Offset.Zero, tween(400))
-//                        } else {
-//                          val horizontalTravel = abs(activeOffset.targetValue.x)
-//                          val verticalTravel = abs(activeOffset.targetValue.y)
-//
-//                          if (horizontalTravel > verticalTravel) {
-//                            if (activeOffset.targetValue.x > 0) {
-//                              swipeNew(Direction.Right)
-////                          onSwiped(Direction.Right)
-//                            } else {
-//                              swipeNew(Direction.Left)
-////                          onSwiped(Direction.Left)
-//                            }
-//                          } else {
-//                            if (activeOffset.targetValue.y < 0) {
-//                              swipeNew(Direction.Up)
-////                          onSwiped(Direction.Up)
-//                            } else {
-//                              swipeNew(Direction.Down)
-////                          onSwiped(Direction.Down)
-//                            }
-//                          }
-//                        }
-//                      }
-//                    }
-//                  )
-//                }
-//              }
-//              .graphicsLayer {
-//                if (it == currentMovie) {
-//                  translationX = activeOffset.value.x
-//                  translationY = activeOffset.value.y
-//                  rotationZ = (activeOffset.value.x / 60).coerceIn(-40f, 40f)
-//                } else {
-//                  translationX = 0f
-//                  translationY = 0f
-//                  rotationZ = 0f
-//                }
-//              }, movie = it
-//            )
-//          }
-//        }
-//      }
-//    }
-//  }
 }
 
 
 @Composable
-fun MovieOverview(modifier: Modifier, movie: Movie) {
+fun MovieOverview(
+  movie: Movie,
+//  onDrag: (PointerInputChange, Offset) -> Unit,
+  onSwiped: (Movie) -> Unit
+) {
+
+//  val screenWidth =
+//    with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
+//  val screenHeight =
+//    with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
+  val screenWidth = 1000f
+  val screenHeight = 2000f
+
+  val activeOffset by remember() {
+    mutableStateOf(Animatable(Offset.Zero, Offset.VectorConverter))
+  }
+
+  fun onSwipedNew(direction: Direction) {
+    onSwiped(movie)
+  }
+
+  suspend fun swipeNew(direction: Direction, animationSpec: AnimationSpec<Offset> = tween(400)) {
+    val endX = screenWidth * 1.5f
+    val endY = screenHeight
+    when (direction) {
+      Direction.Left -> activeOffset.animateTo(Offset(x = -endX, 0f), animationSpec)
+      Direction.Right -> activeOffset.animateTo(Offset(x = endX, 0f), animationSpec)
+      Direction.Up -> activeOffset.animateTo(Offset(x = 0f, y = -endY), animationSpec)
+      Direction.Down -> activeOffset.animateTo(Offset(x = 0f, y = endY), animationSpec)
+    }
+    onSwipedNew(direction)
+  }
+
+
   LogCompositions(tag = "Oncreate", msg = "Movie Overview -> ${movie.id} comp")
   val random = remember { getRandomColor() }
+
   Card(
-    modifier = modifier
+    modifier = Modifier
       .fillMaxWidth()
       .padding(horizontal = 30.dp)
-      .height(100.dp),
-    colors = CardDefaults.cardColors(containerColor = random)
+      .height(100.dp)
+      .clickable { onSwiped(movie) }
+      .pointerInput(Unit) {
+        coroutineScope {
+          detectDragGestures(
+            onDragCancel = {
+              launch {
+                activeOffset.animateTo(Offset(0f, 0f))
+
+//                    state.reset()
+//                    onSwipeCancel()
+              }
+            },
+            onDrag = { change, dragAmount ->
+//              onDrag(change, dragAmount)
+              launch {
+                val original = activeOffset.targetValue
+                val summed = original + dragAmount
+                val newValue = Offset(
+                  x = summed.x.coerceIn(-screenWidth, screenWidth),
+                  y = summed.y.coerceIn(-screenHeight, screenHeight)
+                )
+                if (change.positionChange() != Offset.Zero) change.consume()
+                activeOffset.animateTo(Offset(newValue.x, newValue.y))
+              }
+            },
+            onDragEnd = {
+              launch {
+                val coercedOffset = activeOffset.targetValue
+                  .coerceIn(
+                    listOf(Direction.Up, Direction.Down),
+                    maxHeight = screenHeight,
+                    maxWidth = screenWidth
+                  )
+
+                if (hasNotTravelledEnoughNew(
+                    screenWidth,
+                    screenHeight,
+                    coercedOffset
+                  )
+                ) {
+                  activeOffset.animateTo(Offset.Zero, tween(400))
+                } else {
+                  val horizontalTravel = abs(activeOffset.targetValue.x)
+                  val verticalTravel = abs(activeOffset.targetValue.y)
+
+                  if (horizontalTravel > verticalTravel) {
+                    if (activeOffset.targetValue.x > 0) {
+                      swipeNew(Direction.Right)
+//                          onSwiped(Direction.Right)
+                    } else {
+                      swipeNew(Direction.Left)
+//                          onSwiped(Direction.Left)
+                    }
+                  } else {
+                    if (activeOffset.targetValue.y < 0) {
+//                              swipeNew(Direction.Up)
+//                          onSwiped(Direction.Up)
+                    } else {
+//                              swipeNew(Direction.Down)
+//                          onSwiped(Direction.Down)
+                    }
+                  }
+                }
+              }
+            }
+          )
+        }
+      }
+      .graphicsLayer {
+        translationX = activeOffset.value.x
+        translationY = activeOffset.value.y
+        rotationZ = (activeOffset.value.x / 60).coerceIn(-40f, 40f)
+      }
+
+    ,colors = CardDefaults.cardColors(containerColor = random)
   ) {
+    LogCompositions(tag = "Oncreate", msg = "Movie Overview CARD -> ${movie.id} comp")
+
     Text(movie.id, color = Color.Black)
   }
 }
