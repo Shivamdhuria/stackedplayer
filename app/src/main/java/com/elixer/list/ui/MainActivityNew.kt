@@ -112,12 +112,13 @@ class MainActivityNew : ComponentActivity() {
 
           Column {
             LogCompositions(tag = "Swipe", msg = "Column")
-
-            ContentList(movieList.takeLast(2))
-
-            Button(onClick = {
-              onClick()
-            }) {
+            Spacer(modifier = Modifier.height(100.dp))
+            ScopedView {
+              ContentList(movieList.takeLast(2))
+            }
+            Button(
+              onClick = ::onClick
+            ) {
               Text(text = "take index ")
             }
           }
@@ -128,12 +129,11 @@ class MainActivityNew : ComponentActivity() {
 
   @Composable
   private fun ContentList(movieList: List<GameEntry>) {
-    ScopedView {
-      Box {
-        movieList.forEachIndexed { index, movie ->
-          key(movie.id) {
-            COntentView(Modifier.fillMaxWidth(), movie)
-          }
+    Box {
+      movieList.forEachIndexed { index, movie ->
+        Log.d("Swipe", "Index ${index} movie id-> ${movie.id}")
+        key(movie.id) {
+          COntentView(Modifier.fillMaxWidth(), movie)
         }
       }
     }
@@ -142,15 +142,19 @@ class MainActivityNew : ComponentActivity() {
 
 @Composable
 private fun COntentView(modifier: Modifier, movie: GameEntry) {
-  Card(modifier, ) {
 
-      LogCompositions(tag = "Swipe", msg = "CntentView id ${movie.id}")
-      Text(text = movie.id.toString(), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
-
+  Card(modifier.height(400.dp)) {
+    LogCompositions(tag = "Swipe", msg = "ContentView id ${movie.id}")
+    veedi(videoUri = movie.media?.url.toString(), id = movie.id, true)
+    Text(
+      text = movie.id.toString(),
+      textAlign = TextAlign.Center,
+      modifier = Modifier.fillMaxWidth()
+    )
   }
   DisposableEffect(Unit) {
     onDispose {
-      Log.d("Swipe", "Disposed Card id -> ${movie.id}")
+      Log.e("Swipe", "Disposed Card id -> ${movie.id}")
     }
   }
 }
