@@ -63,6 +63,8 @@ fun veedi(videoUri: String, id: Long, isActive:Boolean) {
   LaunchedEffect(isActive) {
     if (isActive) {
       exoPlayer.playWhenReady = isActive
+      Log.d("Swipe", "exoplayer playing Id ${id}  --- ")
+
     }
   }
   LogCompositions(tag = "Swipe", msg = "Video Card -> ${id} ..")
