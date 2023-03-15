@@ -19,6 +19,7 @@ fun ContentView(modifier: Modifier, movie: GameEntry, isActive: Boolean) {
       .height(400.dp)
       .padding(horizontal = 30.dp)
   ) {
+    LogCompositions("ContentView ${movie.id}")
 
     MediaPlayer(videoUri = movie.media?.url.toString(), id = movie.id, isActive)
 
@@ -31,7 +32,7 @@ fun ContentView(modifier: Modifier, movie: GameEntry, isActive: Boolean) {
   }
   DisposableEffect(Unit) {
     onDispose {
-      Log.e("Swipe", "Disposed Card id -> ${movie.id}")
+      Log.e("TAG", "Disposed Card id -> ${movie.id}")
     }
   }
 }

@@ -52,6 +52,7 @@ fun MediaPlayer(videoUri: String, id: Long, isActive:Boolean) {
         prepare()
       }
   }
+  LogCompositions("Exoplayer created  ${id}")
 
   DisposableEffect(
     AndroidView(
@@ -80,6 +81,8 @@ fun MediaPlayer(videoUri: String, id: Long, isActive:Boolean) {
     )
   ) {
     onDispose {
+      Log.e("TAG", "Disposed Exoplayrt id -> ${id}")
+
       exoPlayer.release()
     }
   }
