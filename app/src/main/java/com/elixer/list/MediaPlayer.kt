@@ -6,7 +6,10 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.C
@@ -20,11 +23,13 @@ import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 
+@OptIn(ExperimentalComposeUiApi::class)
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @Composable
-fun MediaPlayer(videoUri: String, id: Long, isActive:Boolean) {
+fun MediaPlayer(modifier: Modifier, videoUri: String, id: Long, isActive: Boolean) {
   val context = LocalContext.current
   val application = context.applicationContext as CultApplication
+  LogCompositions("Exoplayer created  ${id}")
 
   val exoPlayer = remember {
     ExoPlayer.Builder(context).build()
@@ -46,16 +51,20 @@ fun MediaPlayer(videoUri: String, id: Long, isActive:Boolean) {
             .createMediaSource(mediaItem)
         }
         mediaSource?.let { setMediaSource(it, true) }
-        playWhenReady = true
+        playWhenReady = false
         videoScalingMode = C.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING
         repeatMode = Player.REPEAT_MODE_ONE
         prepare()
       }
   }
-  LogCompositions("Exoplayer created  ${id}")
+//  LaunchedEffect(isActive) {
+////    if (isActive) exoPlayer.play()
+//  }
 
   DisposableEffect(
+
     AndroidView(
+      modifier = modifier,
       factory = {
         PlayerView(context).apply {
           hideController()
@@ -66,23 +75,36 @@ fun MediaPlayer(videoUri: String, id: Long, isActive:Boolean) {
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT
           )
-          videoSurfaceView?.alpha = 0.5f
-          videoSurfaceView?.translationZ = 40f
-          (videoSurfaceView as? SurfaceView)?.let {
-            Log.d("!!!!Surface view", "id ${id}")
-            it.setZOrderOnTop(true)
-            it.setZOrderMediaOverlay(false)
-            Log.d("!!!!Surface view", "id ${id} hasOverlappingRendering " +
-                    "${hasOverlappingRendering}")
-
-          }
+//          videoSurfaceView?.alpha = 0.5f
+//          videoSurfaceView?.translationZ = 40f
+//          (videoSurfaceView as? SurfaceView)?.let {
+//            Log.d("!!!!Surface view", "id ${id}")
+//            it.setZOrderOnTop(true)
+//            it.setZOrderMediaOverlay(false)
+//            Log.d("!!!!Surface view", "id ${id} hasOverlappingRendering " +
+//                    "${hasOverlappingRendering}")
+//
+//          }
         }
       },
+      update = {
+//        it.videoSurfaceView?.z = if (isActive) 1f else 0f
+//        it.z = if (isActive) 1f else 0f
+        Log.e("TAG", "update Exoplayer id -> ${id}, isActive ${isActive}")
+      },
+      onReset = {
+        Log.e("TAG", "clear Exoplayer id -> ${id}, isActive ${isActive}")
+
+
+      },
+      onRelease = {
+        Log.e("TAG", "reset Exoplayer id -> ${id}, isActive ${isActive}")
+
+      }
     )
   ) {
     onDispose {
-      Log.e("TAG", "Disposed Exoplayrt id -> ${id}")
-
+      Log.e("TAG", "Disposed Exoplayer id -> ${id}")
       exoPlayer.release()
     }
   }

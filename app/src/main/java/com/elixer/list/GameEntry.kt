@@ -18,6 +18,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.media3.common.util.UnstableApi
 import com.elixer.list.ui.theme.ListTheme
 
@@ -103,55 +104,17 @@ val mockMovies = listOf(
 
   )
 
-@UnstableApi
-class MainActivityNew : ComponentActivity() {
-  override fun onCreate(savedInstanceState: Bundle?) {
-    super.onCreate(savedInstanceState)
-    setContent {
-      ListTheme {
-        // A surface container using the 'background' color from the theme
-
-        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-
-          var movieList = remember {
-            mutableStateListOf(
-              mockMovies.get(0),
-              mockMovies.get(1),
-              mockMovies.get(2),
-              mockMovies.get(3),
-              mockMovies.get(4),
-              mockMovies.get(5),
-            )
-          }
-
-          fun onClick() {
-            movieList.removeLast()
-          }
-
-          Column {
-            ContentList(movieList.takeLast(2))
-            Button(
-              onClick = ::onClick
-            ) {
-              Text(text = "remove last")
-            }
-          }
-        }
-      }
-    }
-  }
-}
 
 @Composable
-private fun ContentList(movieList: List<GameEntry>) {
-  Box {
+fun ContentList(movieList: List<GameEntry>) {
+  Column() {
     LogCompositions("ContentList Box ")
-    movieList.forEachIndexed { index, movie ->
-      key(movie.id) {
-        Log.e("ContentList", " id ->> ${movie.id}, index--> ${index}")
-        ContentView(
-          Modifier.fillMaxWidth(), movie, index == 1
-        )
+    ScopedView {
+      movieList.forEachIndexed { index, movie ->
+//      key(movie.id) {
+        Log.e("TAG", " id ->> ${movie.id}, index--> ${index}")
+        ContentView(movie, index == 1)
+//      }
       }
     }
   }
@@ -165,7 +128,12 @@ class Ref(var value: Int)
 @Suppress("NOTHING_TO_INLINE")
 @Composable
 inline fun LogCompositions(tag: String) {
-    val ref = remember { Ref(0) }
-    SideEffect { ref.value++ }
-    Log.d("TAG", "Compositions: $tag: ${ref.value}")
+  val ref = remember { Ref(0) }
+  SideEffect { ref.value++ }
+  Log.d("TAG", "Compositions: $tag: ${ref.value}")
+}
+
+@Composable
+fun ScopedView(content: @Composable () -> Unit) {
+  content()
 }
