@@ -25,7 +25,7 @@
         android:theme="@style/Theme.List"
         tools:targetApi="31">
         <activity
-            android:name=".ui.MainActivityNew"
+            android:name=".MainActivityNew"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.List">

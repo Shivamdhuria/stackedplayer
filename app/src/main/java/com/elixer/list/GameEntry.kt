@@ -1,5 +1,26 @@
 package com.elixer.list
 
+import android.os.Bundle
+import android.util.Log
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.media3.common.util.UnstableApi
+import com.elixer.list.ui.theme.ListTheme
+
 
 data class GameEntry(
 
@@ -30,7 +51,7 @@ enum class MediaType(val value: kotlin.String) {
   video("video")
 }
 
-val mock4 = listOf(
+val mockMovies = listOf(
   GameEntry(
     authorId = 1693470030420771857, id = 1, instanceId = 1697052293175706907, invitationId = null,
     media = Media(
@@ -81,3 +102,70 @@ val mock4 = listOf(
   ),
 
   )
+
+@UnstableApi
+class MainActivityNew : ComponentActivity() {
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    setContent {
+      ListTheme {
+        // A surface container using the 'background' color from the theme
+
+        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+
+          var movieList = remember {
+            mutableStateListOf(
+              mockMovies.get(0),
+              mockMovies.get(1),
+              mockMovies.get(2),
+              mockMovies.get(3),
+              mockMovies.get(4),
+              mockMovies.get(5),
+            )
+          }
+
+          fun onClick() {
+            movieList.removeLast()
+          }
+
+          Column {
+            ContentList(movieList.takeLast(2))
+            Button(
+              onClick = ::onClick
+            ) {
+              Text(text = "remove last")
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@Composable
+private fun ContentList(movieList: List<GameEntry>) {
+  Box {
+    LogCompositions("ContentList Box ")
+    movieList.forEachIndexed { index, movie ->
+      key(movie.id) {
+        Log.e("ContentList", " id ->> ${movie.id}, index--> ${index}")
+        ContentView(
+          Modifier.fillMaxWidth(), movie, index == 1
+        )
+      }
+    }
+  }
+}
+
+class Ref(var value: Int)
+
+// Note the inline function below which ensures that this function is essentially
+// copied at the call site to ensure that its logging only recompositions from the
+// original call site.
+@Suppress("NOTHING_TO_INLINE")
+@Composable
+inline fun LogCompositions(tag: String) {
+    val ref = remember { Ref(0) }
+    SideEffect { ref.value++ }
+    Log.d("TAG", "Compositions: $tag: ${ref.value}")
+}
