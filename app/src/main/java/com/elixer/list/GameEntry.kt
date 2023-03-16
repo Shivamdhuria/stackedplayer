@@ -1,28 +1,34 @@
 package com.elixer.list
 
-import android.os.Bundle
 import android.util.Log
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.media3.common.util.UnstableApi
-import com.elixer.list.ui.theme.ListTheme
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import com.elixer.list.mediaCompose.media.Media
+import com.elixer.list.mediaCompose.media.rememberMediaState
+import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.source.ProgressiveMediaSource
+import com.google.android.exoplayer2.upstream.DefaultDataSource
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
+import com.google.android.exoplayer2.upstream.cache.CacheDataSource
 
 
 data class GameEntry(
@@ -83,7 +89,8 @@ val mockMovies = listOf(
     authorId = 1693470030420771857, id = 3, instanceId = 1697052293175706907, invitationId = null,
     media = Media(
       id = 3,
-      url = "https://cdn-cult.s3.us-west-2.amazonaws.com/media/958656f7-949b-4b25-b4a3-9ea9ad82212b.mp4",
+//      url = "https://cdn-cult.s3.us-west-2.amazonaws.com/media/958656f7-949b-4b25-b4a3-9ea9ad82212b.mp4",
+      url = "https://html5demos.com/assets/dizzy.mp4",
     ),
     mediaId = 17,
   ),
@@ -91,15 +98,18 @@ val mockMovies = listOf(
     authorId = 1693470030420771857, id = 4, instanceId = 1697052293175706907, invitationId = null,
     media = Media(
       id = 4,
-      url = "https://cdn-cult.s3.us-west-2.amazonaws.com/media/a5aa932d-d631-4a77-ad5a-15f916efcb89.mp4",
-    ),
+//      url = "https://cdn-cult.s3.us-west-2.amazonaws.com/media/a5aa932d-d631-4a77-ad5a-15f916efcb89.mp4",
+      url = "https://storage.googleapis.com/exoplayer-test-media-1/mp4/frame-counter-one-hour.mp4",
+
+      ),
     mediaId = 17,
   ),
   GameEntry(
     authorId = 1693470030420771857, id = 5, instanceId = 1697052293175706907, invitationId = null,
     media = Media(
       id = 6,
-      url = "https://cdn-cult.s3.us-west-2.amazonaws.com/media/b71bb799-4fd4-4c24-b9c0-fd064de3a22d.mp4",
+//      url = "https://cdn-cult.s3.us-west-2.amazonaws.com/media/b71bb799-4fd4-4c24-b9c0-fd064de3a22d.mp4",
+      url = "https://storage.googleapis.com/downloads.webmproject.org/av1/exoplayer/bbb-av1-480p.mp4",
     ),
     mediaId = 17,
   ),
@@ -108,13 +118,74 @@ val mockMovies = listOf(
 
 
 @Composable
-fun ContentList(movieList: List<GameEntry>) {
-  LazyColumn() {
-//    LogCompositions("ContentList Box ")
-    items(movieList){
-      ContentView(it, true)
+fun ContentList(modifier: Modifier = Modifier, movieList: List<GameEntry>) {
 
+  val mediaItems = remember {
+    movieList.map {
+      MediaItem.Builder().setMediaId(it.media?.url.toString())
+        .setUri(it.media?.url.toString()).build()
     }
+  }
+  val player by rememberManagedExoPlayer()
+
+  val listState = rememberLazyListState()
+  val focusedIndex by remember(listState) {
+    derivedStateOf {
+      val firstVisibleItemIndex = listState.firstVisibleItemIndex
+      val firstVisibleItemScrollOffset = listState.firstVisibleItemScrollOffset
+      if (firstVisibleItemScrollOffset == 0) {
+        firstVisibleItemIndex
+      } else if (firstVisibleItemIndex + 1 <= listState.layoutInfo.totalItemsCount - 1) {
+        firstVisibleItemIndex + 1
+      } else -1
+    }
+  }
+//  LazyColumn() {
+////    LogCompositions("ContentList Box ")
+//    items(movieList){
+//      ContentView(it, true)
+//
+//    }
+
+  LazyColumn(
+    modifier = modifier,
+    state = listState,
+    verticalArrangement = Arrangement.spacedBy(10.dp),
+  ) {
+    itemsIndexed(mediaItems) { index, mediaItem ->
+      ListItem(
+        showVideo = index == focusedIndex
+      ) {
+        LaunchedEffect(mediaItem, player) {
+          player?.run {
+//            setMediaItem(mediaItem)
+//            prepare()
+            val httpDataSourceFactory: DefaultHttpDataSource.Factory = DefaultHttpDataSource.Factory().setAllowCrossProtocolRedirects(true)
+            val defaultDataSourceFactory: DefaultDataSource.Factory = DefaultDataSource.Factory(application, httpDataSourceFactory)
+            val cacheDataSourceFactory: CacheDataSource.Factory? = application.simpleCache?.let {
+              CacheDataSource.Factory()
+                .setCache(it)
+                .setUpstreamDataSourceFactory(defaultDataSourceFactory)
+                .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
+            }
+            val mediaSource: ProgressiveMediaSource? = cacheDataSourceFactory?.let {
+              mediaItem.let { it1 ->
+                ProgressiveMediaSource.Factory(it)
+                  .createMediaSource(it1)
+              }
+            }
+            mediaSource?.let { (this as? ExoPlayer)?.setMediaSource(it, true) }
+          }
+        }
+        Media(
+          state = rememberMediaState(player = player),
+          modifier = Modifier
+            .matchParentSize()
+            .background(Color.Black)
+        )
+      }
+    }
+  }
 
 //      movieList.forEachIndexed { index, movie ->
 ////      key(movie.id) {
@@ -122,7 +193,6 @@ fun ContentList(movieList: List<GameEntry>) {
 //        ContentView(movie, true)
 ////      }
 //      }
-  }
 }
 
 class Ref(var value: Int)
@@ -141,4 +211,21 @@ inline fun LogCompositions(tag: String) {
 @Composable
 fun ScopedView(content: @Composable () -> Unit) {
   content()
+}
+
+@Composable
+fun ListItem(
+  showVideo: Boolean,
+  video: @Composable BoxScope.() -> Unit
+) {
+  Card(
+    modifier = Modifier.padding(horizontal = 16.dp, vertical = 0.dp),
+    shape = RoundedCornerShape(12.dp)
+  ) {
+    Box(modifier = Modifier.aspectRatio(1f)) {
+      if (showVideo) {
+        video()
+      }
+    }
+  }
 }
