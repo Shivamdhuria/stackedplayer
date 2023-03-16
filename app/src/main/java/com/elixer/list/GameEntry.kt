@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,14 +18,18 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.elixer.list.mediaCompose.media.Media
+import com.elixer.list.mediaCompose.media.SurfaceType
 import com.elixer.list.mediaCompose.media.rememberMediaState
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.Player.REPEAT_MODE_ONE
+import com.google.android.exoplayer2.Player.RepeatMode
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DefaultDataSource
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
@@ -117,63 +122,22 @@ val mockMovies = listOf(
 @Composable
 fun ContentList(modifier: Modifier = Modifier, movieList: List<GameEntry>) {
 
-  val mediaItems = remember {
+  val mediaItems = remember(movieList) {
     movieList.map {
       MediaItem.Builder().setMediaId(it.media?.url.toString()).setUri(it.media?.url.toString()).build()
     }
   }
-  val player by rememberManagedExoPlayer()
-
-  val listState = rememberLazyListState()
-  val focusedIndex by remember(listState) {
-    derivedStateOf {
-      val firstVisibleItemIndex = listState.firstVisibleItemIndex
-      val firstVisibleItemScrollOffset = listState.firstVisibleItemScrollOffset
-      if (firstVisibleItemScrollOffset == 0) {
-        firstVisibleItemIndex
-      } else if (firstVisibleItemIndex + 1 <= listState.layoutInfo.totalItemsCount - 1) {
-        firstVisibleItemIndex + 1
-      } else -1
-    }
-  } //  LazyColumn() {
-  ////    LogCompositions("ContentList Box ")
-  //    items(movieList){
-  //      ContentView(it, true)
-  //
-  //    }
-
-  LazyColumn(
+  Column(
     modifier = modifier,
-    state = listState,
-    verticalArrangement = Arrangement.spacedBy(10.dp),
   ) {
-    itemsIndexed(mediaItems) { index, mediaItem ->
-      ListItem(
-        showVideo = index == focusedIndex
-      ) {
-        LaunchedEffect(mediaItem, player) {
-          player?.run { //            setMediaItem(mediaItem)
-            //            prepare()
-            val httpDataSourceFactory: DefaultHttpDataSource.Factory = DefaultHttpDataSource.Factory().setAllowCrossProtocolRedirects(true)
-            val defaultDataSourceFactory: DefaultDataSource.Factory = DefaultDataSource.Factory(application, httpDataSourceFactory)
-            val cacheDataSourceFactory: CacheDataSource.Factory? = application.simpleCache?.let {
-              CacheDataSource.Factory().setCache(it).setUpstreamDataSourceFactory(defaultDataSourceFactory).setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
-            }
-            val mediaSource: ProgressiveMediaSource? = cacheDataSourceFactory?.let {
-              mediaItem.let { it1 ->
-                ProgressiveMediaSource.Factory(it).createMediaSource(it1)
-              }
-            }
-            mediaSource?.let { (this as? ExoPlayer)?.setMediaSource(it, true) }
-            prepare()
-          }
-        }
-        Media(
-          state = rememberMediaState(player = player), modifier = Modifier
-            .matchParentSize()
-            .background(Color.Black)
-        )
-      }
+    mediaItems.forEachIndexed { index, mediaItem ->
+      Log.e("TAG", "media item -- > ${mediaItem}, index -> ${index},")
+//      key(mediaItem.mediaId) {
+        ListItemNew(
+          showVideo = index == 1,
+          mediaItem = mediaItem,
+        ) {}
+//      }
     }
   }
 
@@ -183,6 +147,48 @@ fun ContentList(modifier: Modifier = Modifier, movieList: List<GameEntry>) {
   //        ContentView(movie, true)
   ////      }
   //      }
+}
+
+@Composable
+fun ListItemNew(
+  showVideo: Boolean, mediaItem: MediaItem, video: @Composable BoxScope.() -> Unit
+) {
+  val player by rememberManagedExoPlayer()
+  player?.apply {
+    val httpDataSourceFactory: DefaultHttpDataSource.Factory = DefaultHttpDataSource.Factory().setAllowCrossProtocolRedirects(true)
+    val defaultDataSourceFactory: DefaultDataSource.Factory = DefaultDataSource.Factory(application, httpDataSourceFactory)
+    val cacheDataSourceFactory: CacheDataSource.Factory? = application.simpleCache?.let {
+      CacheDataSource.Factory().setCache(it).setUpstreamDataSourceFactory(defaultDataSourceFactory).setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
+    }
+    val mediaSource: ProgressiveMediaSource? = cacheDataSourceFactory?.let {
+      mediaItem.let { it1 ->
+        ProgressiveMediaSource.Factory(it).createMediaSource(it1)
+      }
+    }
+    mediaSource?.let { (player as? ExoPlayer)?.setMediaSource(it, true) }
+    repeatMode = REPEAT_MODE_ONE
+    prepare()
+  }
+  LaunchedEffect(showVideo) {
+    if (showVideo) {
+      player?.playWhenReady = true
+    } else {
+      player?.pause()
+    }
+  }
+  Card(
+    modifier = Modifier.padding(horizontal = 16.dp, vertical = 0.dp), shape = RoundedCornerShape(12.dp)
+  ) {
+    Box(modifier = Modifier.aspectRatio(1f)) {
+      Media(
+        state = rememberMediaState(player = player),
+        modifier = Modifier
+          .matchParentSize()
+          .background(Color.Black),
+        surfaceType = SurfaceType.TextureView
+      )
+    }
+  }
 }
 
 class Ref(var value: Int)

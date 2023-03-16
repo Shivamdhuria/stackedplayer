@@ -49,8 +49,7 @@ android {
 
 dependencies {
 //    implementation 'com.github.theapache64:twyper:0.0.4'
-//    implementation 'co m.alexstyl.
-//    swipeablecard:swipeablecard:0.1.0'
+    implementation 'com.alexstyl.swipeablecard:swipeablecard:0.1.0'
 
 //    implementation "com.github.fengdai.compose:media:0.3.0"
 

@@ -78,7 +78,7 @@ class MainActivityNew : ComponentActivity() {
             ) {
               Text(text = "remove last")
             }
-            ContentList(Modifier, movieList.takeLast(4))
+            ContentList(Modifier, movieList.takeLast(2))
             Button(
               onClick = ::onClick
             ) {
