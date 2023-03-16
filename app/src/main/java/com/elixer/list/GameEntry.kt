@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -107,16 +109,19 @@ val mockMovies = listOf(
 
 @Composable
 fun ContentList(movieList: List<GameEntry>) {
-  Column() {
-    LogCompositions("ContentList Box ")
-    ScopedView {
-      movieList.forEachIndexed { index, movie ->
-//      key(movie.id) {
-        Log.e("TAG", " id ->> ${movie.id}, index--> ${index}")
-        ContentView(movie, index == 1)
-//      }
-      }
+  LazyColumn() {
+//    LogCompositions("ContentList Box ")
+    items(movieList){
+      ContentView(it, true)
+
     }
+
+//      movieList.forEachIndexed { index, movie ->
+////      key(movie.id) {
+//        Log.e("TAG", " id ->> ${movie.id}, index--> ${index}")
+//        ContentView(movie, true)
+////      }
+//      }
   }
 }
 

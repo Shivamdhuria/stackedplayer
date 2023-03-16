@@ -21,8 +21,10 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.media3.common.util.UnstableApi
 import com.elixer.list.ui.theme.ListTheme
@@ -72,19 +74,21 @@ class MainActivityNew : ComponentActivity() {
 }
 
 @Composable
-fun ContentView( movie: GameEntry, isActive: Boolean) {
+fun ContentView(movie: GameEntry, isActive: Boolean) {
   Card(
     Modifier
       .fillMaxWidth()
-      .height(300.dp)
       .padding(horizontal = 50.dp)
+      .padding(vertical = 30.dp)
   ) {
     LogCompositions("ContentView ${movie.id}")
 ////    key(movie.media?.url) {
-//      MediaPlayer(Modifier, videoUri = movie.media?.url
-//        .toString
-//        (), id = movie.id,
-//        isActive)
+    MediaPlayer(
+      Modifier.height(200.dp), videoUri = movie.media?.url
+        .toString
+          (), id = movie.id,
+      isActive
+    )
 //
 ////    }
 
@@ -92,10 +96,14 @@ fun ContentView( movie: GameEntry, isActive: Boolean) {
     Text(
       text = movie.id.toString(),
       textAlign = TextAlign.Center,
+      color = Color.White,
+      fontSize = 20.sp,
       modifier = Modifier.fillMaxWidth()
     )
   }
   DisposableEffect(Unit) {
+    Log.e("TAG", "Created Card id -> ${movie.id}")
+
     onDispose {
       Log.e("TAG", "Disposed Card id -> ${movie.id}")
     }

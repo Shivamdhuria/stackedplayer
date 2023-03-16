@@ -4,6 +4,7 @@ import android.util.Log
 import android.view.SurfaceView
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -51,22 +52,18 @@ fun MediaPlayer(modifier: Modifier, videoUri: String, id: Long, isActive: Boolea
             .createMediaSource(mediaItem)
         }
         mediaSource?.let { setMediaSource(it, true) }
-        playWhenReady = false
+        playWhenReady = true
         videoScalingMode = C.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING
         repeatMode = Player.REPEAT_MODE_ONE
         prepare()
       }
   }
-//  LaunchedEffect(isActive) {
-////    if (isActive) exoPlayer.play()
-//  }
 
-  DisposableEffect(
-
+  Box(modifier = modifier){
     AndroidView(
       modifier = modifier,
       factory = {
-        PlayerView(context).apply {
+        StyledPla(context).apply {
           hideController()
           useController = false
           resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
@@ -102,7 +99,12 @@ fun MediaPlayer(modifier: Modifier, videoUri: String, id: Long, isActive: Boolea
 
       }
     )
-  ) {
+  }
+//  LaunchedEffect(isActive) {
+////    if (isActive) exoPlayer.play()
+//  }
+
+  DisposableEffect(Unit) {
     onDispose {
       Log.e("TAG", "Disposed Exoplayer id -> ${id}")
       exoPlayer.release()
