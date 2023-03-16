@@ -127,7 +127,7 @@ fun ContentList(modifier: Modifier = Modifier, movieList: List<GameEntry>) {
       MediaItem.Builder().setMediaId(it.media?.url.toString()).setUri(it.media?.url.toString()).build()
     }
   }
-  Column(
+  Box(
     modifier = modifier,
   ) {
     mediaItems.forEachIndexed { index, mediaItem ->
