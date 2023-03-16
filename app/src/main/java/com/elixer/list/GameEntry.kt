@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -89,29 +90,29 @@ val mockMovies = listOf(
       url = "https://cdn-cult.s3.us-west-2.amazonaws.com/media/ebb81dea-d559-4c25-8793-fe99f9a3a746.mp4",
     ),
     mediaId = 17,
-  ),
-  GameEntry(
-    authorId = 1693470030420771857, id = 3, instanceId = 1697052293175706907, invitationId = null,
-    media = Media(
-      id = 3, //      url = "https://cdn-cult.s3.us-west-2.amazonaws.com/media/958656f7-949b-4b25-b4a3-9ea9ad82212b.mp4",
-      url = "https://html5demos.com/assets/dizzy.mp4",
-    ),
-    mediaId = 17,
-  ),
+  ), //  GameEntry(
+  //    authorId = 1693470030420771857, id = 3, instanceId = 1697052293175706907, invitationId = null,
+  //    media = Media(
+  //      id = 3, //
+  //       url = "https://cdn-cult.s3.us-west-2.amazonaws.com/media/958656f7-949b-4b25-b4a3-9ea9ad82212b.mp4",
+  ////      url = "https://html5demos.com/assets/dizzy.mp4",
+  //    ),
+  //    mediaId = 17,
+  //  ),
   GameEntry(
     authorId = 1693470030420771857, id = 4, instanceId = 1697052293175706907, invitationId = null,
     media = Media(
-      id = 4, //      url = "https://cdn-cult.s3.us-west-2.amazonaws.com/media/a5aa932d-d631-4a77-ad5a-15f916efcb89.mp4",
-      url = "https://storage.googleapis.com/exoplayer-test-media-1/mp4/frame-counter-one-hour.mp4",
+      id = 4, //
+      url = "https://cdn-cult.s3.us-west-2.amazonaws.com/media/a5aa932d-d631-4a77-ad5a-15f916efcb89.mp4", //      url = "https://storage.googleapis.com/exoplayer-test-media-1/mp4/frame-counter-one-hour.mp4",
 
-      ),
+    ),
     mediaId = 17,
   ),
   GameEntry(
     authorId = 1693470030420771857, id = 5, instanceId = 1697052293175706907, invitationId = null,
     media = Media(
-      id = 6, //      url = "https://cdn-cult.s3.us-west-2.amazonaws.com/media/b71bb799-4fd4-4c24-b9c0-fd064de3a22d.mp4",
-      url = "https://storage.googleapis.com/downloads.webmproject.org/av1/exoplayer/bbb-av1-480p.mp4",
+      id = 6, //
+      url = "https://cdn-cult.s3.us-west-2.amazonaws.com/media/b71bb799-4fd4-4c24-b9c0-fd064de3a22d.mp4", //      url = "https://storage.googleapis.com/downloads.webmproject.org/av1/exoplayer/bbb-av1-480p.mp4",
     ),
     mediaId = 17,
   ),
@@ -132,12 +133,15 @@ fun ContentList(modifier: Modifier = Modifier, movieList: List<GameEntry>) {
   ) {
     mediaItems.forEachIndexed { index, mediaItem ->
       Log.e("TAG", "media item -- > ${mediaItem}, index -> ${index},")
-//      key(mediaItem.mediaId) {
+      key(mediaItem.mediaId) {
         ListItemNew(
+          modifier = Modifier
+            .padding(horizontal = 40.dp)
+            .aspectRatio(9 / 16f),
           showVideo = index == 1,
           mediaItem = mediaItem,
         ) {}
-//      }
+      }
     }
   }
 
@@ -151,7 +155,7 @@ fun ContentList(modifier: Modifier = Modifier, movieList: List<GameEntry>) {
 
 @Composable
 fun ListItemNew(
-  showVideo: Boolean, mediaItem: MediaItem, video: @Composable BoxScope.() -> Unit
+  modifier: Modifier, showVideo: Boolean, mediaItem: MediaItem, video: @Composable BoxScope.() -> Unit
 ) {
   val player by rememberManagedExoPlayer()
   player?.apply {
@@ -177,15 +181,13 @@ fun ListItemNew(
     }
   }
   Card(
-    modifier = Modifier.padding(horizontal = 16.dp, vertical = 0.dp), shape = RoundedCornerShape(12.dp)
+    modifier = modifier, shape = RoundedCornerShape(12.dp)
   ) {
-    Box(modifier = Modifier.aspectRatio(1f)) {
+    Box(modifier = Modifier) {
       Media(
-        state = rememberMediaState(player = player),
-        modifier = Modifier
-          .matchParentSize()
-          .background(Color.Black),
-        surfaceType = SurfaceType.TextureView
+        state = rememberMediaState(player = player), modifier = Modifier
+          .fillMaxSize()
+          .background(Color.Black), surfaceType = SurfaceType.TextureView
       )
     }
   }

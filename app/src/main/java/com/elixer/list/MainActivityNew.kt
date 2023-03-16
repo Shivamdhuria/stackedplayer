@@ -64,7 +64,7 @@ class MainActivityNew : ComponentActivity() {
               mockMovies.get(2),
               mockMovies.get(3),
               mockMovies.get(4),
-              mockMovies.get(5),
+//              mockMovies.get(5),
             )
           }
 
