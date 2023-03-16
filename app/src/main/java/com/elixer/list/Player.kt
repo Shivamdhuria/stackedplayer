@@ -2,6 +2,7 @@ package com.elixer.list
 
 import android.content.Context
 import android.os.Build
+import android.util.Log
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -80,6 +81,7 @@ internal class PlayerManager(
             }
             player.release()
         }
+        Log.e("Exoplayer", "released")
         player.value = null
     }
 

@@ -2,6 +2,7 @@ package com.elixer.list
 
 import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -25,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.elixer.list.mediaCompose.media.Media
+import com.elixer.list.mediaCompose.media.ShowBuffering
 import com.elixer.list.mediaCompose.media.SurfaceType
 import com.elixer.list.mediaCompose.media.rememberMediaState
 import com.google.android.exoplayer2.ExoPlayer
@@ -121,27 +123,30 @@ val mockMovies = listOf(
 
 
 @Composable
-fun ContentList(modifier: Modifier = Modifier, movieList: List<GameEntry>) {
+fun ContentList(modifier: Modifier = Modifier, movieList: List<GameEntry>, onRemove: () -> Unit) {
 
   val mediaItems = remember(movieList) {
     movieList.map {
       MediaItem.Builder().setMediaId(it.media?.url.toString()).setUri(it.media?.url.toString()).build()
     }
   }
+
+  Log.e("TAG", mediaItems.map{it.mediaId.toString()}.toString())
   Box(
     modifier = modifier,
   ) {
     mediaItems.forEachIndexed { index, mediaItem ->
-      Log.e("TAG", "media item -- > ${mediaItem}, index -> ${index},")
-      key(mediaItem.mediaId) {
+      Log.e("TAG", "media item -- > ${mediaItem.mediaId}, index -> ${index},")
+//      key(mediaItem.mediaId) {
         ListItemNew(
           modifier = Modifier
+            .clickable(onClick = { onRemove() })
             .padding(horizontal = 40.dp)
             .aspectRatio(9 / 16f),
-          showVideo = index == 1,
+          showVideo = mediaItem == mediaItems.last(),
           mediaItem = mediaItem,
         ) {}
-      }
+//      }
     }
   }
 
@@ -187,7 +192,8 @@ fun ListItemNew(
       Media(
         state = rememberMediaState(player = player), modifier = Modifier
           .fillMaxSize()
-          .background(Color.Black), surfaceType = SurfaceType.TextureView
+          .background(Color.Black),
+        surfaceType = SurfaceType.TextureView,
       )
     }
   }
