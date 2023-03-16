@@ -11,6 +11,6 @@ fun  rememberManagedExoPlayer(): State<Player?> = rememberManagedPlayer { contex
     val builder = ExoPlayer.Builder(context)
 //    builder.setMediaSourceFactory(ProgressiveMediaSource.Factory(DefaultDataSource.Factory(context)))
     builder.build().apply {
-        playWhenReady = true
+        playWhenReady = false
     }
 }

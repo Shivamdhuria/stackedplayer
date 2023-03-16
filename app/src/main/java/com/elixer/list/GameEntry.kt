@@ -88,8 +88,7 @@ val mockMovies = listOf(
   GameEntry(
     authorId = 1693470030420771857, id = 3, instanceId = 1697052293175706907, invitationId = null,
     media = Media(
-      id = 3,
-//      url = "https://cdn-cult.s3.us-west-2.amazonaws.com/media/958656f7-949b-4b25-b4a3-9ea9ad82212b.mp4",
+      id = 3, //      url = "https://cdn-cult.s3.us-west-2.amazonaws.com/media/958656f7-949b-4b25-b4a3-9ea9ad82212b.mp4",
       url = "https://html5demos.com/assets/dizzy.mp4",
     ),
     mediaId = 17,
@@ -97,8 +96,7 @@ val mockMovies = listOf(
   GameEntry(
     authorId = 1693470030420771857, id = 4, instanceId = 1697052293175706907, invitationId = null,
     media = Media(
-      id = 4,
-//      url = "https://cdn-cult.s3.us-west-2.amazonaws.com/media/a5aa932d-d631-4a77-ad5a-15f916efcb89.mp4",
+      id = 4, //      url = "https://cdn-cult.s3.us-west-2.amazonaws.com/media/a5aa932d-d631-4a77-ad5a-15f916efcb89.mp4",
       url = "https://storage.googleapis.com/exoplayer-test-media-1/mp4/frame-counter-one-hour.mp4",
 
       ),
@@ -107,8 +105,7 @@ val mockMovies = listOf(
   GameEntry(
     authorId = 1693470030420771857, id = 5, instanceId = 1697052293175706907, invitationId = null,
     media = Media(
-      id = 6,
-//      url = "https://cdn-cult.s3.us-west-2.amazonaws.com/media/b71bb799-4fd4-4c24-b9c0-fd064de3a22d.mp4",
+      id = 6, //      url = "https://cdn-cult.s3.us-west-2.amazonaws.com/media/b71bb799-4fd4-4c24-b9c0-fd064de3a22d.mp4",
       url = "https://storage.googleapis.com/downloads.webmproject.org/av1/exoplayer/bbb-av1-480p.mp4",
     ),
     mediaId = 17,
@@ -122,8 +119,7 @@ fun ContentList(modifier: Modifier = Modifier, movieList: List<GameEntry>) {
 
   val mediaItems = remember {
     movieList.map {
-      MediaItem.Builder().setMediaId(it.media?.url.toString())
-        .setUri(it.media?.url.toString()).build()
+      MediaItem.Builder().setMediaId(it.media?.url.toString()).setUri(it.media?.url.toString()).build()
     }
   }
   val player by rememberManagedExoPlayer()
@@ -139,13 +135,12 @@ fun ContentList(modifier: Modifier = Modifier, movieList: List<GameEntry>) {
         firstVisibleItemIndex + 1
       } else -1
     }
-  }
-//  LazyColumn() {
-////    LogCompositions("ContentList Box ")
-//    items(movieList){
-//      ContentView(it, true)
-//
-//    }
+  } //  LazyColumn() {
+  ////    LogCompositions("ContentList Box ")
+  //    items(movieList){
+  //      ContentView(it, true)
+  //
+  //    }
 
   LazyColumn(
     modifier = modifier,
@@ -157,29 +152,24 @@ fun ContentList(modifier: Modifier = Modifier, movieList: List<GameEntry>) {
         showVideo = index == focusedIndex
       ) {
         LaunchedEffect(mediaItem, player) {
-          player?.run {
-//            setMediaItem(mediaItem)
-//            prepare()
+          player?.run { //            setMediaItem(mediaItem)
+            //            prepare()
             val httpDataSourceFactory: DefaultHttpDataSource.Factory = DefaultHttpDataSource.Factory().setAllowCrossProtocolRedirects(true)
             val defaultDataSourceFactory: DefaultDataSource.Factory = DefaultDataSource.Factory(application, httpDataSourceFactory)
             val cacheDataSourceFactory: CacheDataSource.Factory? = application.simpleCache?.let {
-              CacheDataSource.Factory()
-                .setCache(it)
-                .setUpstreamDataSourceFactory(defaultDataSourceFactory)
-                .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
+              CacheDataSource.Factory().setCache(it).setUpstreamDataSourceFactory(defaultDataSourceFactory).setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
             }
             val mediaSource: ProgressiveMediaSource? = cacheDataSourceFactory?.let {
               mediaItem.let { it1 ->
-                ProgressiveMediaSource.Factory(it)
-                  .createMediaSource(it1)
+                ProgressiveMediaSource.Factory(it).createMediaSource(it1)
               }
             }
             mediaSource?.let { (this as? ExoPlayer)?.setMediaSource(it, true) }
+            prepare()
           }
         }
         Media(
-          state = rememberMediaState(player = player),
-          modifier = Modifier
+          state = rememberMediaState(player = player), modifier = Modifier
             .matchParentSize()
             .background(Color.Black)
         )
@@ -187,12 +177,12 @@ fun ContentList(modifier: Modifier = Modifier, movieList: List<GameEntry>) {
     }
   }
 
-//      movieList.forEachIndexed { index, movie ->
-////      key(movie.id) {
-//        Log.e("TAG", " id ->> ${movie.id}, index--> ${index}")
-//        ContentView(movie, true)
-////      }
-//      }
+  //      movieList.forEachIndexed { index, movie ->
+  ////      key(movie.id) {
+  //        Log.e("TAG", " id ->> ${movie.id}, index--> ${index}")
+  //        ContentView(movie, true)
+  ////      }
+  //      }
 }
 
 class Ref(var value: Int)
@@ -215,12 +205,10 @@ fun ScopedView(content: @Composable () -> Unit) {
 
 @Composable
 fun ListItem(
-  showVideo: Boolean,
-  video: @Composable BoxScope.() -> Unit
+  showVideo: Boolean, video: @Composable BoxScope.() -> Unit
 ) {
   Card(
-    modifier = Modifier.padding(horizontal = 16.dp, vertical = 0.dp),
-    shape = RoundedCornerShape(12.dp)
+    modifier = Modifier.padding(horizontal = 16.dp, vertical = 0.dp), shape = RoundedCornerShape(12.dp)
   ) {
     Box(modifier = Modifier.aspectRatio(1f)) {
       if (showVideo) {

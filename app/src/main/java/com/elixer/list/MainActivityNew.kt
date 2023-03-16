@@ -50,43 +50,43 @@ class MainActivityNew : ComponentActivity() {
     super.onCreate(savedInstanceState)
     setContent {
 
-      InsideListContent(Modifier.fillMaxSize())
+//      InsideListContent(Modifier.fillMaxSize())
 
-//      ListTheme {
-//        // A surface container using the 'background' color from the theme
-//
-//        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-//
-//          var movieList = remember {
-//            mutableStateListOf(
-//              mockMovies.get(0),
-//              mockMovies.get(1),
-//              mockMovies.get(2),
-//              mockMovies.get(3),
-//              mockMovies.get(4),
-//              mockMovies.get(5),
-//            )
-//          }
-//
-//          fun onClick() {
-//            movieList.removeLast()
-//          }
-//
-//          Column {
-//            Button(
-//              onClick = ::onClick
-//            ) {
-//              Text(text = "remove last")
-//            }
-//            ContentList(Modifier, movieList.takeLast(4))
-//            Button(
-//              onClick = ::onClick
-//            ) {
-//              Text(text = "remove last")
-//            }
-//          }
-//        }
-//      }
+      ListTheme {
+        // A surface container using the 'background' color from the theme
+
+        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+
+          var movieList = remember {
+            mutableStateListOf(
+              mockMovies.get(0),
+              mockMovies.get(1),
+              mockMovies.get(2),
+              mockMovies.get(3),
+              mockMovies.get(4),
+              mockMovies.get(5),
+            )
+          }
+
+          fun onClick() {
+            movieList.removeLast()
+          }
+
+          Column {
+            Button(
+              onClick = ::onClick
+            ) {
+              Text(text = "remove last")
+            }
+            ContentList(Modifier, movieList.takeLast(4))
+            Button(
+              onClick = ::onClick
+            ) {
+              Text(text = "remove last")
+            }
+          }
+        }
+      }
     }
   }
 
@@ -128,8 +128,6 @@ fun InsideListContent(
       ) {
         LaunchedEffect(mediaItem, player) {
           player?.run {
-//            setMediaItem(mediaItem)
-//            prepare()
             val httpDataSourceFactory: DefaultHttpDataSource.Factory = DefaultHttpDataSource.Factory().setAllowCrossProtocolRedirects(true)
             val defaultDataSourceFactory: DefaultDataSource.Factory = DefaultDataSource.Factory(application, httpDataSourceFactory)
             val cacheDataSourceFactory: CacheDataSource.Factory? = application.simpleCache?.let {
