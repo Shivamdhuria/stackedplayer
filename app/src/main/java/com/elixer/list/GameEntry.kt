@@ -114,109 +114,113 @@ val mockMovies = listOf(
   GameEntry(
     authorId = 1693470030420771857, id = 5, instanceId = 1697052293175706907, invitationId = null,
     media = Media(
-      id = 6, //
+      id = 5, //
       url = "https://cdn-cult.s3.us-west-2.amazonaws.com/media/b71bb799-4fd4-4c24-b9c0-fd064de3a22d.mp4", //      url = "https://storage.googleapis.com/downloads.webmproject.org/av1/exoplayer/bbb-av1-480p.mp4",
     ),
     mediaId = 17,
+  ),
+  GameEntry(
+    authorId = 1693470030420771857, id = 0, instanceId = 1697052293175706907, invitationId = null,
+    media = Media(
+      id = 5,
+      url = "https://cdn-cult.s3.us-west-2.amazonaws.com/media/b71bb799-4fd4-4c24-b9c0-fd064de3a22d.mp4",
+    ),
+    mediaId = 5,
+  ),
+  GameEntry(
+    authorId = 1693470030420771857, id = 6, instanceId = 1697052293175706907, invitationId = null,
+    media = Media(
+      id = 6,
+      url = "https://cdn-cult.s3.us-west-2.amazonaws.com/media/a5aa932d-d631-4a77-ad5a-15f916efcb89.mp4",
+    ),
+    mediaId = 6,
+  ),
+  GameEntry(
+    authorId = 1693470030420771857, id = 7, instanceId = 1697052293175706907, invitationId = null,
+    media = Media(
+      id = 7,
+      url = "https://cdn-cult.s3.us-west-2.amazonaws.com/media/ebb81dea-d559-4c25-8793-fe99f9a3a746.mp4",
+    ),
+    mediaId = 7,
+  ), //  GameEntry(
+  //    authorId = 1693470030420771857, id = 3, instanceId = 1697052293175706907, invitationId = null,
+  //    media = Media(
+  //      id = 3, //
+  //       url = "https://cdn-cult.s3.us-west-2.amazonaws.com/media/958656f7-949b-4b25-b4a3-9ea9ad82212b.mp4",
+  ////      url = "https://html5demos.com/assets/dizzy.mp4",
+  //    ),
+  //    mediaId = 17,
+  //  ),
+  GameEntry(
+    authorId = 1693470030420771857, id = 8, instanceId = 1697052293175706907, invitationId = null,
+    media = Media(
+      id = 8, //
+      url = "https://cdn-cult.s3.us-west-2.amazonaws.com/media/a5aa932d-d631-4a77-ad5a-15f916efcb89.mp4", //      url = "https://storage.googleapis.com/exoplayer-test-media-1/mp4/frame-counter-one-hour.mp4",
+
+    ),
+    mediaId = 9,
+  ),
+  GameEntry(
+    authorId = 1693470030420771857, id = 9, instanceId = 1697052293175706907, invitationId = null,
+    media = Media(
+      id = 9, //
+      url = "https://cdn-cult.s3.us-west-2.amazonaws.com/media/b71bb799-4fd4-4c24-b9c0-fd064de3a22d.mp4", //      url = "https://storage.googleapis.com/downloads.webmproject.org/av1/exoplayer/bbb-av1-480p.mp4",
+    ),
+    mediaId = 9,
+  ),
+  GameEntry(
+    authorId = 1693470030420771857, id = 10, instanceId = 1697052293175706907, invitationId = null,
+    media = Media(
+      id = 10,
+      url = "https://cdn-cult.s3.us-west-2.amazonaws.com/media/b71bb799-4fd4-4c24-b9c0-fd064de3a22d.mp4",
+    ),
+    mediaId = 10,
+  ),
+  GameEntry(
+    authorId = 1693470030420771857, id = 11, instanceId = 1697052293175706907, invitationId = null,
+    media = Media(
+      id = 11,
+      url = "https://cdn-cult.s3.us-west-2.amazonaws.com/media/a5aa932d-d631-4a77-ad5a-15f916efcb89.mp4",
+    ),
+    mediaId = 11,
+  ),
+  GameEntry(
+    authorId = 1693470030420771857, id = 12, instanceId = 1697052293175706907, invitationId = null,
+    media = Media(
+      id = 12,
+      url = "https://cdn-cult.s3.us-west-2.amazonaws.com/media/ebb81dea-d559-4c25-8793-fe99f9a3a746.mp4",
+    ),
+    mediaId = 12,
+  ), //  GameEntry(
+  //    authorId = 1693470030420771857, id = 3, instanceId = 1697052293175706907, invitationId = null,
+  //    media = Media(
+  //      id = 3, //
+  //       url = "https://cdn-cult.s3.us-west-2.amazonaws.com/media/958656f7-949b-4b25-b4a3-9ea9ad82212b.mp4",
+  ////      url = "https://html5demos.com/assets/dizzy.mp4",
+  //    ),
+  //    mediaId = 17,
+  //  ),
+  GameEntry(
+    authorId = 1693470030420771857, id = 13, instanceId = 1697052293175706907, invitationId = null,
+    media = Media(
+      id = 13, //
+      url = "https://cdn-cult.s3.us-west-2.amazonaws.com/media/a5aa932d-d631-4a77-ad5a-15f916efcb89.mp4", //      url = "https://storage.googleapis.com/exoplayer-test-media-1/mp4/frame-counter-one-hour.mp4",
+
+    ),
+    mediaId = 13,
+  ),
+  GameEntry(
+    authorId = 1693470030420771857, id = 14, instanceId = 1697052293175706907, invitationId = null,
+    media = Media(
+      id = 14, //
+      url = "https://cdn-cult.s3.us-west-2.amazonaws.com/media/b71bb799-4fd4-4c24-b9c0-fd064de3a22d.mp4", //      url = "https://storage.googleapis.com/downloads.webmproject.org/av1/exoplayer/bbb-av1-480p.mp4",
+    ),
+    mediaId = 14,
   ),
 
   )
 
 
-@Composable
-fun ContentList(modifier: Modifier = Modifier, movieList: List<GameEntry>, onRemove: () -> Unit) {
-
-  val mediaItems = remember() {
-    mutableStateListOf<MediaItem>()
-  }
-
-  LaunchedEffect(movieList) { //
-    if (mediaItems.isEmpty()) {
-      mediaItems.addAll(movieList.map {
-        MediaItem.Builder().setMediaId(it.media?.url.toString()).setUri(it.media?.url.toString()).build()
-      })
-    } else { //
-      mediaItems.removeLast()
-      movieList.forEachIndexed { index, item ->
-
-        if (index == 0) {
-          val media = MediaItem.Builder().setMediaId(item.media?.url.toString()).setUri(item.media?.url.toString()).build()
-          mediaItems.add(0, media)
-        }
-      }
-    } //    activeOffset.snapTo(Offset(0f, 0f))
-    //
-    //    currentMovie = movieList.last() //    activeOffset.snapTo(Offset(0f, 0f))
-  }
-
-
-
-  Log.e("TAG", mediaItems.map { it.mediaId.toString() }.toString())
-  Box(
-    modifier = modifier,
-  ) {
-    mediaItems.forEachIndexed { index, mediaItem ->
-      Log.e("TAG", "media item -- > ${mediaItem.mediaId}, index -> ${index},") //      key(mediaItem.mediaId) {
-      ListItemNew(
-        modifier = Modifier
-          .clickable(onClick = { onRemove() })
-          .padding(horizontal = 40.dp)
-          .aspectRatio(9 / 16f),
-        showVideo = mediaItem == mediaItems.last(),
-        mediaItem = mediaItem,
-      ) {} //      }
-    }
-  }
-
-  //      movieList.forEachIndexed { index, movie ->
-  ////      key(movie.id) {
-  //        Log.e("TAG", " id ->> ${movie.id}, index--> ${index}")
-  //        ContentView(movie, true)
-  ////      }
-  //      }
-}
-
-@Composable
-fun ListItemNew(
-  modifier: Modifier, showVideo: Boolean, mediaItem: MediaItem, video: @Composable BoxScope.() -> Unit
-) {
-  val player by rememberManagedExoPlayer()
-  player?.apply {
-    val httpDataSourceFactory: DefaultHttpDataSource.Factory = DefaultHttpDataSource.Factory().setAllowCrossProtocolRedirects(true)
-    val defaultDataSourceFactory: DefaultDataSource.Factory = DefaultDataSource.Factory(application, httpDataSourceFactory)
-    val cacheDataSourceFactory: CacheDataSource.Factory? = application.simpleCache?.let {
-      CacheDataSource.Factory().setCache(it).setUpstreamDataSourceFactory(defaultDataSourceFactory).setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
-    }
-    val mediaSource: ProgressiveMediaSource? = cacheDataSourceFactory?.let {
-      mediaItem.let { it1 ->
-        ProgressiveMediaSource.Factory(it).createMediaSource(it1)
-      }
-    }
-    mediaSource?.let { (player as? ExoPlayer)?.setMediaSource(it, true) }
-    repeatMode = REPEAT_MODE_ONE
-    prepare()
-  }
-  LaunchedEffect(showVideo) {
-    if (showVideo) {
-      player?.playWhenReady = true
-    } else {
-      player?.pause()
-    }
-  }
-  Card(
-    modifier = modifier, shape = RoundedCornerShape(12.dp)
-  ) {
-    Box(modifier = Modifier) {
-      Media(
-        state = rememberMediaState(player = player),
-        modifier = Modifier
-          .fillMaxSize()
-          .background(Color.Black),
-        surfaceType = SurfaceType.TextureView,
-      )
-    }
-  }
-}
 
 class Ref(var value: Int)
 
