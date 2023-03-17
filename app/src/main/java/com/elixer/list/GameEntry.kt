@@ -21,6 +21,7 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -125,28 +126,45 @@ val mockMovies = listOf(
 @Composable
 fun ContentList(modifier: Modifier = Modifier, movieList: List<GameEntry>, onRemove: () -> Unit) {
 
-  val mediaItems = remember(movieList) {
-    movieList.map {
-      MediaItem.Builder().setMediaId(it.media?.url.toString()).setUri(it.media?.url.toString()).build()
-    }
+  val mediaItems = remember() {
+    mutableStateListOf<MediaItem>()
   }
 
-  Log.e("TAG", mediaItems.map{it.mediaId.toString()}.toString())
+  LaunchedEffect(movieList) { //
+    if (mediaItems.isEmpty()) {
+      mediaItems.addAll(movieList.map {
+        MediaItem.Builder().setMediaId(it.media?.url.toString()).setUri(it.media?.url.toString()).build()
+      })
+    } else { //
+      mediaItems.removeLast()
+      movieList.forEachIndexed { index, item ->
+
+        if (index == 0) {
+          val media = MediaItem.Builder().setMediaId(item.media?.url.toString()).setUri(item.media?.url.toString()).build()
+          mediaItems.add(0, media)
+        }
+      }
+    } //    activeOffset.snapTo(Offset(0f, 0f))
+    //
+    //    currentMovie = movieList.last() //    activeOffset.snapTo(Offset(0f, 0f))
+  }
+
+
+
+  Log.e("TAG", mediaItems.map { it.mediaId.toString() }.toString())
   Box(
     modifier = modifier,
   ) {
     mediaItems.forEachIndexed { index, mediaItem ->
-      Log.e("TAG", "media item -- > ${mediaItem.mediaId}, index -> ${index},")
-//      key(mediaItem.mediaId) {
-        ListItemNew(
-          modifier = Modifier
-            .clickable(onClick = { onRemove() })
-            .padding(horizontal = 40.dp)
-            .aspectRatio(9 / 16f),
-          showVideo = mediaItem == mediaItems.last(),
-          mediaItem = mediaItem,
-        ) {}
-//      }
+      Log.e("TAG", "media item -- > ${mediaItem.mediaId}, index -> ${index},") //      key(mediaItem.mediaId) {
+      ListItemNew(
+        modifier = Modifier
+          .clickable(onClick = { onRemove() })
+          .padding(horizontal = 40.dp)
+          .aspectRatio(9 / 16f),
+        showVideo = mediaItem == mediaItems.last(),
+        mediaItem = mediaItem,
+      ) {} //      }
     }
   }
 
@@ -190,7 +208,8 @@ fun ListItemNew(
   ) {
     Box(modifier = Modifier) {
       Media(
-        state = rememberMediaState(player = player), modifier = Modifier
+        state = rememberMediaState(player = player),
+        modifier = Modifier
           .fillMaxSize()
           .background(Color.Black),
         surfaceType = SurfaceType.TextureView,

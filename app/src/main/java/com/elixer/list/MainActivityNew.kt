@@ -44,6 +44,7 @@ import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DefaultDataSource
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
 import com.google.android.exoplayer2.upstream.cache.CacheDataSource
+import java.lang.Exception
 
 class MainActivityNew : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,12 +65,16 @@ class MainActivityNew : ComponentActivity() {
               mockMovies.get(2),
               mockMovies.get(3),
               mockMovies.get(4),
-//              mockMovies.get(5),
             )
           }
 
           fun onClick() {
-            movieList.removeLast()
+            try {
+              movieList.removeLast()
+            } catch (ex:Exception){
+
+            }
+
           }
 
           Column {
