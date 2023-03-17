@@ -8,8 +8,11 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -39,10 +42,14 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
@@ -61,17 +68,20 @@ import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DefaultDataSource
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
 import com.google.android.exoplayer2.upstream.cache.CacheDataSource
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.lang.Exception
+import kotlin.math.abs
 
 class MainActivityNew : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContent {
 
-//      InsideListContent(Modifier.fillMaxSize())
+      //      InsideListContent(Modifier.fillMaxSize())
 
-      ListTheme {
-        // A surface container using the 'background' color from the theme
+      ListTheme { // A surface container using the 'background' color from the theme
 
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
 
@@ -80,14 +90,14 @@ class MainActivityNew : ComponentActivity() {
 
             )
           }
-          LaunchedEffect(Unit ){
+          LaunchedEffect(Unit) {
             movieList.addAll(mockMovies)
           }
 
           fun onClick() {
             try {
               movieList.removeLast()
-            } catch (ex:Exception){
+            } catch (ex: Exception) {
 
             }
 
@@ -99,7 +109,7 @@ class MainActivityNew : ComponentActivity() {
             ) {
               Text(text = "remove last")
             }
-            Stack(Modifier, movieList.takeLast(2)){
+            Stack(Modifier, movieList.takeLast(2)) {
               onClick()
             }
             Button(
@@ -122,6 +132,8 @@ fun Stack(modifier: Modifier = Modifier, movieList: List<GameEntry>, onRemove: (
   val mediaItems = remember() {
     mutableStateListOf<MediaItem>()
   }
+  val alpha = remember { mutableStateOf(1f) }
+  Log.e("TAG", "media itme ${mediaItems.map { it.mediaId }}")
   val screenWidth = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
   val screenHeight = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
   val scope = rememberCoroutineScope() //    var activeCardState = rememberSwipeableCardState() //    val queuedCardState = rememberSwipeableCardState()
@@ -132,6 +144,7 @@ fun Stack(modifier: Modifier = Modifier, movieList: List<GameEntry>, onRemove: (
       )
     )
   }
+  var currentEntity by remember { mutableStateOf<MediaItem?>(null) }
 
   fun onSwipedNew(direction: Direction) {
     onRemove()
@@ -151,20 +164,35 @@ fun Stack(modifier: Modifier = Modifier, movieList: List<GameEntry>, onRemove: (
   }
 
   LaunchedEffect(movieList) { //
-    if (mediaItems.isEmpty()) {
-      mediaItems.addAll(movieList.map {
-        MediaItem.Builder().setMediaId(it.media?.url.toString()).setUri(it.media?.url.toString()).build()
-      })
-    } else { //
-      mediaItems.removeLast()
-      movieList.forEachIndexed { index, item ->
+    scope.launch {
+      if (mediaItems.isEmpty()) {
+        mediaItems.addAll(movieList.map {
+          MediaItem.Builder().setMediaId(it.media?.id.toString()).setUri(it.media?.url.toString()).build()
+        })
+        movieList.lastOrNull()?.let {
+          currentEntity = MediaItem.Builder().setMediaId(movieList.lastOrNull()?.media?.id.toString()).setUri(movieList.last().media?.url.toString()).build()
 
-        if (index == 0) {
-          val media = MediaItem.Builder().setMediaId(item.media?.url.toString()).setUri(item.media?.url.toString()).build()
-          mediaItems.add(0, media)
         }
+
+      } else { //
+        mediaItems.removeLast() //
+        // a delay for old list to update
+        delay(50)
+        currentEntity = MediaItem.Builder().setMediaId(movieList.last().media?.id.toString()).setUri(movieList.last().media?.url.toString()).build() //    activeOffset.snapTo(Offset(0f, 0f))
+
+        movieList.forEachIndexed { index, item ->
+
+          if (index == 0) {
+            val media = MediaItem.Builder().setMediaId(item.media?.id.toString()).setUri(item.media?.url.toString()).build()
+            mediaItems.add(0, media)
+          }
+        } //      delay()
+        activeOffset.snapTo(Offset(0f, 0f))
+
       }
-    } //    activeOffset.snapTo(Offset(0f, 0f))
+    }
+
+    //
     //
     //    currentMovie = movieList.last() //    activeOffset.snapTo(Offset(0f, 0f))
   }
@@ -179,9 +207,71 @@ fun Stack(modifier: Modifier = Modifier, movieList: List<GameEntry>, onRemove: (
       Log.e("TAG", "media item -- > ${mediaItem.mediaId}, index -> ${index},") //      key(mediaItem.mediaId) {
       Item(
         modifier = Modifier
-          .clickable(onClick = { onRemove() })
           .padding(horizontal = 40.dp)
-          .aspectRatio(9 / 16f),
+          .aspectRatio(9 / 16f)
+          .then(if (mediaItem != currentEntity) {
+            Modifier
+          } else Modifier
+            .zIndex(Float.MAX_VALUE)
+            .pointerInput(Unit) {
+              coroutineScope {
+                detectDragGestures(onDragCancel = {
+                  launch { //                    state.reset()
+                    //                    onSwipeCancel()
+                  }
+                }, onDrag = { change, dragAmount ->
+                  launch {
+                    val original = activeOffset.targetValue
+                    val summed = original + dragAmount
+                    val newValue = Offset(
+                      x = summed.x.coerceIn(-screenWidth, screenWidth), y = summed.y.coerceIn(-screenHeight, screenHeight)
+                    )
+                    if (change.positionChange() != Offset.Zero) change.consume()
+                    activeOffset.animateTo(Offset(newValue.x, newValue.y))
+                  }
+                }, onDragEnd = {
+                  launch {
+                    val coercedOffset = activeOffset.targetValue.coerceIn(
+                      listOf(Direction.Up, Direction.Down), maxHeight = screenHeight, maxWidth = screenWidth
+                    )
+
+                    if (hasNotTravelledEnoughNew(
+                        screenWidth, screenHeight, coercedOffset
+                      )
+                    ) {
+                      activeOffset.animateTo(Offset.Zero, tween(400))
+                    } else {
+                      val horizontalTravel = abs(activeOffset.targetValue.x)
+                      val verticalTravel = abs(activeOffset.targetValue.y)
+
+                      if (horizontalTravel > verticalTravel) {
+                        if (activeOffset.targetValue.x > 0) {
+                          swipeNew(Direction.Right) //                          onSwiped(Direction.Right)
+                        } else {
+                          swipeNew(Direction.Left) //                          onSwiped(Direction.Left)
+                        }
+                      } else {
+                        if (activeOffset.targetValue.y < 0) {
+                          swipeNew(Direction.Up) //                          onSwiped(Direction.Up)
+                        } else {
+                          swipeNew(Direction.Down) //                          onSwiped(Direction.Down)
+                        }
+                      }
+                    }
+                  }
+                })
+              }
+            }
+            .graphicsLayer { //              if (index == 1) {
+              translationX = activeOffset.value.x
+              translationY = activeOffset.value.y
+              rotationZ = (activeOffset.value.x / 60).coerceIn(-40f, 40f) //              } else {
+              //                translationX = 0f
+              //                translationY = 0f
+              //                rotationZ = 0f
+              //              }
+
+            }),
         showVideo = mediaItem == mediaItems.last(),
         mediaItem = mediaItem,
       ) {} //      }
@@ -195,12 +285,14 @@ fun Stack(modifier: Modifier = Modifier, movieList: List<GameEntry>, onRemove: (
   ////      }
   //      }
 }
+
 val Urls = listOf(
   "https://storage.googleapis.com/downloads.webmproject.org/av1/exoplayer/bbb-av1-480p.mp4",
   "https://storage.googleapis.com/exoplayer-test-media-1/mkv/android-screens-lavf-56.36.100-aac-avc-main-1280x720.mkv",
   "https://storage.googleapis.com/exoplayer-test-media-1/mp4/frame-counter-one-hour.mp4",
   "https://html5demos.com/assets/dizzy.mp4",
 )
+
 @Composable
 fun InsideListContent(
   modifier: Modifier = Modifier,
@@ -234,15 +326,11 @@ fun InsideListContent(
             val httpDataSourceFactory: DefaultHttpDataSource.Factory = DefaultHttpDataSource.Factory().setAllowCrossProtocolRedirects(true)
             val defaultDataSourceFactory: DefaultDataSource.Factory = DefaultDataSource.Factory(application, httpDataSourceFactory)
             val cacheDataSourceFactory: CacheDataSource.Factory? = application.simpleCache?.let {
-              CacheDataSource.Factory()
-                .setCache(it)
-                .setUpstreamDataSourceFactory(defaultDataSourceFactory)
-                .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
+              CacheDataSource.Factory().setCache(it).setUpstreamDataSourceFactory(defaultDataSourceFactory).setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
             }
             val mediaSource: ProgressiveMediaSource? = cacheDataSourceFactory?.let {
               mediaItem.let { it1 ->
-                ProgressiveMediaSource.Factory(it)
-                  .createMediaSource(it1)
+                ProgressiveMediaSource.Factory(it).createMediaSource(it1)
               }
             }
             mediaSource?.let { (this as? ExoPlayer)?.setMediaSource(it, true) }
@@ -250,8 +338,7 @@ fun InsideListContent(
           }
         }
         Media(
-          state = rememberMediaState(player = player),
-          modifier = Modifier
+          state = rememberMediaState(player = player), modifier = Modifier
             .matchParentSize()
             .background(Color.Black)
         )
@@ -259,6 +346,7 @@ fun InsideListContent(
     }
   }
 }
+
 @Composable
 fun ContentView(movie: GameEntry, isActive: Boolean) {
 
@@ -268,24 +356,19 @@ fun ContentView(movie: GameEntry, isActive: Boolean) {
       .padding(horizontal = 50.dp)
       .padding(vertical = 30.dp)
   ) {
-    LogCompositions("ContentView ${movie.id}")
-////    key(movie.media?.url) {
-//    MediaPlayer(
-//      Modifier.height(200.dp), videoUri = movie.media?.url
-//        .toString
-//          (), id = movie.id,
-//      isActive
-//    )
-//
-////    }
+    LogCompositions("ContentView ${movie.id}") ////    key(movie.media?.url) {
+    //    MediaPlayer(
+    //      Modifier.height(200.dp), videoUri = movie.media?.url
+    //        .toString
+    //          (), id = movie.id,
+    //      isActive
+    //    )
+    //
+    ////    }
 
     // The below text Composable works as expected
     Text(
-      text = movie.id.toString(),
-      textAlign = TextAlign.Center,
-      color = Color.White,
-      fontSize = 20.sp,
-      modifier = Modifier.fillMaxWidth()
+      text = movie.id.toString(), textAlign = TextAlign.Center, color = Color.White, fontSize = 20.sp, modifier = Modifier.fillMaxWidth()
     )
   }
   DisposableEffect(Unit) {
@@ -338,4 +421,42 @@ fun Item(
       )
     }
   }
+}
+
+public fun Offset.coerceIn(
+  blockedDirections: List<Direction>,
+  maxHeight: Float,
+  maxWidth: Float,
+): Offset {
+  return copy(
+    x = x.coerceIn(
+      if (blockedDirections.contains(Direction.Left)) {
+        0f
+      } else {
+        -maxWidth
+      }, if (blockedDirections.contains(Direction.Right)) {
+        0f
+      } else {
+        maxWidth
+      }
+    ), y = y.coerceIn(
+      if (blockedDirections.contains(Direction.Up)) {
+        0f
+      } else {
+        -maxHeight
+      }, if (blockedDirections.contains(Direction.Down)) {
+        0f
+      } else {
+        maxHeight
+      }
+    )
+  )
+}
+
+public fun hasNotTravelledEnoughNew(
+  maxHeight: Float,
+  maxWidth: Float,
+  offset: Offset,
+): Boolean {
+  return abs(offset.x) < maxWidth / 4 && abs(offset.y) < maxHeight / 4
 }
