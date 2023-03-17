@@ -58,6 +58,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.alexstyl.swipeablecard.Direction
 import com.elixer.list.mediaCompose.media.Media
+import com.elixer.list.mediaCompose.media.ShowBuffering
 import com.elixer.list.mediaCompose.media.SurfaceType
 import com.elixer.list.mediaCompose.media.rememberMediaState
 import com.elixer.list.ui.theme.ListTheme
@@ -175,9 +176,9 @@ fun Stack(modifier: Modifier = Modifier, movieList: List<GameEntry>, onRemove: (
         }
 
       } else { //
-        mediaItems.removeLast() //
+        //        mediaItems.removeLast() //
         // a delay for old list to update
-        delay(50)
+        //        delay(50)
         currentEntity = MediaItem.Builder().setMediaId(movieList.last().media?.id.toString()).setUri(movieList.last().media?.url.toString()).build() //    activeOffset.snapTo(Offset(0f, 0f))
 
         movieList.forEachIndexed { index, item ->
@@ -187,6 +188,7 @@ fun Stack(modifier: Modifier = Modifier, movieList: List<GameEntry>, onRemove: (
             mediaItems.add(0, media)
           }
         } //      delay()
+        mediaItems.removeLast()
         activeOffset.snapTo(Offset(0f, 0f))
 
       }
@@ -197,84 +199,84 @@ fun Stack(modifier: Modifier = Modifier, movieList: List<GameEntry>, onRemove: (
     //    currentMovie = movieList.last() //    activeOffset.snapTo(Offset(0f, 0f))
   }
 
-
-
-  Log.e("TAG", mediaItems.map { it.mediaId.toString() }.toString())
   Box(
     modifier = modifier,
   ) {
+    LogCompositions(tag = "Stack Box")
     mediaItems.forEachIndexed { index, mediaItem ->
-      Log.e("TAG", "media item -- > ${mediaItem.mediaId}, index -> ${index},") //      key(mediaItem.mediaId) {
-      Item(
-        modifier = Modifier
-          .padding(horizontal = 40.dp)
-          .aspectRatio(9 / 16f)
-          .then(if (mediaItem != currentEntity) {
-            Modifier
-          } else Modifier
-            .zIndex(Float.MAX_VALUE)
-            .pointerInput(Unit) {
-              coroutineScope {
-                detectDragGestures(onDragCancel = {
-                  launch { //                    state.reset()
-                    //                    onSwipeCancel()
-                  }
-                }, onDrag = { change, dragAmount ->
-                  launch {
-                    val original = activeOffset.targetValue
-                    val summed = original + dragAmount
-                    val newValue = Offset(
-                      x = summed.x.coerceIn(-screenWidth, screenWidth), y = summed.y.coerceIn(-screenHeight, screenHeight)
-                    )
-                    if (change.positionChange() != Offset.Zero) change.consume()
-                    activeOffset.animateTo(Offset(newValue.x, newValue.y))
-                  }
-                }, onDragEnd = {
-                  launch {
-                    val coercedOffset = activeOffset.targetValue.coerceIn(
-                      listOf(Direction.Up, Direction.Down), maxHeight = screenHeight, maxWidth = screenWidth
-                    )
-
-                    if (hasNotTravelledEnoughNew(
-                        screenWidth, screenHeight, coercedOffset
+      Log.e("TAG", "media item -- > ${mediaItem.mediaId}, index -> ${index},") //
+      key(mediaItem.mediaId) {
+        Item(
+          modifier = Modifier
+            .padding(horizontal = 40.dp)
+            .aspectRatio(9 / 16f)
+            .then(if (mediaItem != currentEntity) {
+              Modifier
+            } else Modifier
+              .zIndex(Float.MAX_VALUE)
+              .pointerInput(Unit) {
+                coroutineScope {
+                  detectDragGestures(onDragCancel = {
+                    launch { //                    state.reset()
+                      //                    onSwipeCancel()
+                    }
+                  }, onDrag = { change, dragAmount ->
+                    launch {
+                      val original = activeOffset.targetValue
+                      val summed = original + dragAmount
+                      val newValue = Offset(
+                        x = summed.x.coerceIn(-screenWidth, screenWidth), y = summed.y.coerceIn(-screenHeight, screenHeight)
                       )
-                    ) {
-                      activeOffset.animateTo(Offset.Zero, tween(400))
-                    } else {
-                      val horizontalTravel = abs(activeOffset.targetValue.x)
-                      val verticalTravel = abs(activeOffset.targetValue.y)
+                      if (change.positionChange() != Offset.Zero) change.consume()
+                      activeOffset.animateTo(Offset(newValue.x, newValue.y))
+                    }
+                  }, onDragEnd = {
+                    launch {
+                      val coercedOffset = activeOffset.targetValue.coerceIn(
+                        listOf(Direction.Up, Direction.Down), maxHeight = screenHeight, maxWidth = screenWidth
+                      )
 
-                      if (horizontalTravel > verticalTravel) {
-                        if (activeOffset.targetValue.x > 0) {
-                          swipeNew(Direction.Right) //                          onSwiped(Direction.Right)
-                        } else {
-                          swipeNew(Direction.Left) //                          onSwiped(Direction.Left)
-                        }
+                      if (hasNotTravelledEnoughNew(
+                          screenWidth, screenHeight, coercedOffset
+                        )
+                      ) {
+                        activeOffset.animateTo(Offset.Zero, tween(400))
                       } else {
-                        if (activeOffset.targetValue.y < 0) {
-                          swipeNew(Direction.Up) //                          onSwiped(Direction.Up)
+                        val horizontalTravel = abs(activeOffset.targetValue.x)
+                        val verticalTravel = abs(activeOffset.targetValue.y)
+
+                        if (horizontalTravel > verticalTravel) {
+                          if (activeOffset.targetValue.x > 0) {
+                            swipeNew(Direction.Right) //                          onSwiped(Direction.Right)
+                          } else {
+                            swipeNew(Direction.Left) //                          onSwiped(Direction.Left)
+                          }
                         } else {
-                          swipeNew(Direction.Down) //                          onSwiped(Direction.Down)
+                          if (activeOffset.targetValue.y < 0) {
+                            swipeNew(Direction.Up) //                          onSwiped(Direction.Up)
+                          } else {
+                            swipeNew(Direction.Down) //                          onSwiped(Direction.Down)
+                          }
                         }
                       }
                     }
-                  }
-                })
+                  })
+                }
               }
-            }
-            .graphicsLayer { //              if (index == 1) {
-              translationX = activeOffset.value.x
-              translationY = activeOffset.value.y
-              rotationZ = (activeOffset.value.x / 60).coerceIn(-40f, 40f) //              } else {
-              //                translationX = 0f
-              //                translationY = 0f
-              //                rotationZ = 0f
-              //              }
+              .graphicsLayer { //              if (index == 1) {
+                translationX = activeOffset.value.x
+                translationY = activeOffset.value.y
+                rotationZ = (activeOffset.value.x / 60).coerceIn(-40f, 40f) //              } else {
+                //                translationX = 0f
+                //                translationY = 0f
+                //                rotationZ = 0f
+                //              }
 
-            }),
-        showVideo = mediaItem == mediaItems.last(),
-        mediaItem = mediaItem,
-      ) {} //      }
+              }),
+          showVideo = mediaItem == mediaItems.last(),
+          mediaItem = mediaItem,
+        ) {} //      }
+      } //    }
     }
   }
 
@@ -411,14 +413,21 @@ fun Item(
   Card(
     modifier = modifier, shape = RoundedCornerShape(12.dp)
   ) {
-    Box(modifier = Modifier) {
-      Media(
-        state = rememberMediaState(player = player),
-        modifier = Modifier
-          .fillMaxSize()
-          .background(Color.Black),
-        surfaceType = SurfaceType.TextureView,
-      )
+    key(mediaItem.mediaId) {
+      LogCompositions(tag = "Media Card movie ${mediaItem.mediaId} -- ")
+      Box(modifier = Modifier) {
+        Media(state = rememberMediaState(player = player),
+          modifier = Modifier.fillMaxSize(),
+          surfaceType = SurfaceType.TextureView,
+          showBuffering = ShowBuffering.Always,
+          buffering = { //            Box(modifier = Modifier
+            //              .fillMaxSize()
+            //              .background(Color.White)){
+            //              Text(text = "Buffering")
+            //            }
+
+          })
+      }
     }
   }
 }
