@@ -502,7 +502,7 @@ fun Item(
         Media(state = rememberMediaState(player = player),
           modifier = Modifier.fillMaxSize(),
           surfaceType = SurfaceType.TextureView,
-          showBuffering = ShowBuffering.Never,
+          showBuffering = ShowBuffering.Always,
           buffering = { //            Box(modifier = Modifier
             //              .fillMaxSize()
             //              .background(Color.White)){
